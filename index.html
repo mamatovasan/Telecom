@@ -1628,10 +1628,8 @@ async function exportPPRToExcel(){
     xmlCell('Общее количество','header',false,0),
     xmlCell('Осмотр','header',false,2),
     '','',
-    xmlCell('Диаграмма Осмотр','header',false,0),
     xmlCell('Техническое обслуживание','header',false,2),
-    '','',
-    xmlCell('Диаграмма ТО','header',false,0)
+    '',''
   ].filter(x=>x!=='')));
   rows1.push(xmlRow([
     xmlCell('','header',false,0),
@@ -1639,11 +1637,9 @@ async function exportPPRToExcel(){
     xmlCell('план','header',false,0),
     xmlCell('факт','header',false,0),
     xmlCell('%','header',false,0),
-    xmlCell('','header',false,0),
     xmlCell('план','header',false,0),
     xmlCell('факт','header',false,0),
-    xmlCell('%','header',false,0),
-    xmlCell('','header',false,0)
+    xmlCell('%','header',false,0)
   ]));
   let grand = {count:0, planOsm:0, factOsm:0, planTo:0, factTo:0};
   let rIdx = 0;
@@ -1658,11 +1654,9 @@ async function exportPPRToExcel(){
       xmlCell(t.planOsm,'center',even),
       xmlCell(t.factOsm,'center',even),
       xmlCell(Math.round(pO*100)+'%','center',even),
-      xmlCell(pctBar(pO),'pct',even,0,pO),
       xmlCell(t.planTo,'center',even),
       xmlCell(t.factTo,'center',even),
-      xmlCell(Math.round(pT*100)+'%','center',even),
-      xmlCell(pctBar(pT),'pct',even,0,pT)
+      xmlCell(Math.round(pT*100)+'%','center',even)
     ]));
     grand.count+=t.count; grand.planOsm+=t.planOsm; grand.factOsm+=t.factOsm; grand.planTo+=t.planTo; grand.factTo+=t.factTo;
   });
@@ -1674,20 +1668,18 @@ async function exportPPRToExcel(){
     xmlCell(grand.planOsm,'purpleCenter'),
     xmlCell(grand.factOsm,'purpleCenter'),
     xmlCell(Math.round(grandPO*100)+'%','purpleCenter'),
-    xmlCell(pctBar(grandPO),'pct',true,0,grandPO),
     xmlCell(grand.planTo,'purpleCenter'),
     xmlCell(grand.factTo,'purpleCenter'),
-    xmlCell(Math.round(grandPT*100)+'%','purpleCenter'),
-    xmlCell(pctBar(grandPT),'pct',true,0,grandPT)
+    xmlCell(Math.round(grandPT*100)+'%','purpleCenter')
   ]));
 
-  const ws1xml = buildXlsWorksheetXml('Свод по сети', [110,90,60,60,55,110,60,60,55,110], rows1);
+  const ws1xml = buildXlsWorksheetXml('Свод по сети', [110,90,60,60,55,60,60,55], rows1);
 
   // ---- Лист 2: По подразделениям ----
   const rows2 = [];
   rows2.push(xmlRow([
     'Подразделение','Общее кол-во объектов ЛС, шт.','План за период (Осмотр)','Выполнено осмотров','% выполнения осмотра',
-    'Диаграмма Осмотр','План за период (ТО)','Выполнено ТО','% выполнения ТО','Диаграмма ТО',
+    'План за период (ТО)','Выполнено ТО','% выполнения ТО',
     'Утв. план за ' + monthLabel + ' (Осмотр)','Утв. план за ' + monthLabel + ' (ТО)'
   ].map(t => xmlCell(t,'header',false))));
 
@@ -1702,18 +1694,16 @@ async function exportPPRToExcel(){
       xmlCell(s.planOsmotr,'tanCenter'),
       xmlCell(s.factOsmotr,'tanCenter'),
       xmlCell(Math.round(pO*100)+'%','tanCenter'),
-      xmlCell(pctBar(pO),'pct',false,0,pO),
       xmlCell(s.planTo,'tanCenter'),
       xmlCell(s.factTo,'tanCenter'),
       xmlCell(Math.round(pT*100)+'%','tanCenter'),
-      xmlCell(pctBar(pT),'pct',false,0,pT),
       xmlCell(s.planOsmotr,'tanCenter'),
       xmlCell(s.planTo,'tanCenter')
     ]));
   });
 
   rows2.push(xmlRow([xmlCell('','left',true)]));
-  rows2.push(xmlRow([xmlCell('Всего по типам объектов','header',false,11)]));
+  rows2.push(xmlRow([xmlCell('Всего по типам объектов','header',false,9)]));
   TYPE_ORDER.forEach(code=>{
     const t = totalsByType[code];
     const pO = t.planOsm? t.factOsm/t.planOsm:0;
@@ -1724,18 +1714,16 @@ async function exportPPRToExcel(){
       xmlCell(t.planOsm,'totalsCenter'),
       xmlCell(t.factOsm,'totalsCenter'),
       xmlCell(Math.round(pO*100)+'%','totalsCenter'),
-      xmlCell(pctBar(pO),'pct',false,0,pO),
       xmlCell(t.planTo,'totalsCenter'),
       xmlCell(t.factTo,'totalsCenter'),
       xmlCell(Math.round(pT*100)+'%','totalsCenter'),
-      xmlCell(pctBar(pT),'pct',false,0,pT),
       xmlCell('','totalsCenter'),
       xmlCell('','totalsCenter')
     ]));
   });
-  rows2.push(xmlRow([xmlCell('Отчёт за период: ' + monthLabel + ' · выгружено ' + new Date().toLocaleString('ru-RU'), 'note', false, 11)]));
+  rows2.push(xmlRow([xmlCell('Отчёт за период: ' + monthLabel + ' · выгружено ' + new Date().toLocaleString('ru-RU'), 'note', false, 9)]));
 
-  const ws2xml = buildXlsWorksheetXml('По подразделениям', [140,90,90,80,70,110,80,80,70,110,110,110], rows2);
+  const ws2xml = buildXlsWorksheetXml('По подразделениям', [140,90,90,80,70,80,80,70,110,110], rows2);
 
   const fileSafeLabel = monthLabel.replace(/[^\wа-яА-Я0-9]+/g, '_');
   downloadXlsWorkbook([ws1xml, ws2xml], 'ППР_Отчет_' + fileSafeLabel + '.xls');
