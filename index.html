@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Отчёт по текущему ремонту 2026 — Актюбинский ДЭСД</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg: #e7f2fb;
+    --bg2: #d7ebf9;
+    --card: #ffffff;
+    --kt: #0093d1;
+    --kt-dark: #00679e;
+    --kt-darker: #024d78;
+    --text: #16232e;
+    --muted: #607284;
+    --line: #cfe3f2;
+    --st0: #b6c3cd;
+    --st20: #e3852b;
+    --st50: #e0ac16;
+    --st100: #2f9e5f;
+    --radius: 12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+    color: var(--text);
+    min-height:100vh;
+  }
+  header{
+    background: linear-gradient(120deg, var(--kt-darker), var(--kt));
+    color:#fff;
+    padding: 18px 24px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    box-shadow: 0 2px 10px rgba(2,60,90,0.25);
+    position: sticky;
+    top:0;
+    z-index: 50;
+    flex-wrap: wrap;
+  }
+  header img{
+    height: 52px;
+    background: #fff;
+    padding: 5px 10px;
+    border-radius: 8px;
+  }
+  header .titles{flex:1; min-width:220px;}
+  header h1{font-size:18px; margin:0 0 2px 0; font-weight:700; letter-spacing:.2px;}
+  header p{margin:0; font-size:12.5px; opacity:.9;}
+  .name-box{
+    display:flex; align-items:center; gap:8px;
+    background: rgba(255,255,255,.14);
+    padding:6px 10px; border-radius: 8px;
+  }
+  .name-box input{
+    background: transparent;
+    border:none;
+    border-bottom: 1px solid rgba(255,255,255,.6);
+    color:#fff;
+    font-size: 13px;
+    padding: 3px 4px;
+    outline:none;
+    width: 160px;
+  }
+  .name-box input::placeholder{color: rgba(255,255,255,.75);}
+  .name-box label{font-size:12px; opacity:.9; white-space:nowrap;}
+
+  .admin-btn{
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.4);
+    color:#fff;
+    font-size: 12px;
+    font-weight:600;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition: background .12s ease;
+  }
+  .admin-btn:hover{ background: rgba(255,255,255,.26); }
+  .admin-btn.on{ background: #ffb020; color:#3a2400; border-color:#ffb020; }
+
+  .toolbar{
+    max-width: 1180px;
+    margin: 16px auto 0 auto;
+    padding: 0 16px;
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .summary-pill{
+    background: var(--card);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--kt-darker);
+    font-weight:600;
+    box-shadow: 0 1px 4px rgba(2,60,90,0.08);
+    border: 1px solid var(--line);
+  }
+  .summary-pill b{font-size:15px;}
+  button.export-btn{
+    background: var(--kt-darker);
+    color:#fff;
+    border:none;
+    padding: 10px 18px;
+    border-radius: 9px;
+    font-size: 13.5px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    box-shadow: 0 2px 6px rgba(2,60,90,0.25);
+    transition: transform .12s ease, background .12s ease;
+  }
+  button.export-btn:hover{ background:#014266; transform: translateY(-1px);}
+  button.export-btn svg{width:16px;height:16px;}
+
+  .tabs{
+    max-width: 1180px;
+    margin: 14px auto 0 auto;
+    padding: 0 16px;
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    scrollbar-width: thin;
+  }
+  .tab-btn{
+    flex: 0 0 auto;
+    background: rgba(255,255,255,.6);
+    border: 1px solid var(--line);
+    color: var(--kt-darker);
+    padding: 9px 14px;
+    border-radius: 9px 9px 0 0;
+    font-size: 12.8px;
+    cursor:pointer;
+    font-weight:600;
+    white-space:nowrap;
+    transition: background .12s ease, color .12s ease;
+  }
+  .tab-btn.active{
+    background: var(--card);
+    color: var(--kt);
+    box-shadow: 0 -2px 0 var(--kt) inset;
+  }
+  .tab-badge{
+    display:inline-block;
+    margin-left:6px;
+    font-size:10.5px;
+    background: var(--st0);
+    color:#fff;
+    padding: 1px 6px;
+    border-radius: 999px;
+  }
+  .tab-badge.done{background: var(--st100);}
+  .tab-badge.mid{background: var(--st50);}
+
+  main{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 16px 60px 16px;
+  }
+  .panel{
+    background: var(--card);
+    border-radius: 0 var(--radius) var(--radius) var(--radius);
+    box-shadow: 0 4px 18px rgba(2,60,90,0.10);
+    padding: 20px;
+    margin-top: -1px;
+  }
+  .panel h2{
+    margin: 0 0 4px 0;
+    font-size: 17px;
+    color: var(--kt-darker);
+  }
+  .panel .sub{
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-bottom: 14px;
+  }
+
+  /* Overview grid */
+  .ov-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .ov-card{
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    cursor:pointer;
+    transition: box-shadow .15s ease, transform .15s ease;
+    background: #fbfeff;
+  }
+  .ov-card:hover{ box-shadow: 0 4px 14px rgba(2,60,90,.15); transform: translateY(-2px); }
+  .ov-card .name{font-weight:700; font-size:13.3px; margin-bottom:6px; color:var(--text); line-height:1.3;}
+  .ov-card .count{font-size:11.5px; color:var(--muted); margin-bottom:8px;}
+  .bar-track{
+    background: #e5eef5;
+    border-radius: 999px;
+    height: 9px;
+    overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;
+    background: linear-gradient(90deg, var(--kt), var(--st100));
+    border-radius: 999px;
+    transition: width .3s ease;
+  }
+  .ov-card .pct{ margin-top:6px; font-size:12.5px; font-weight:700; color: var(--kt-darker); text-align:right;}
+
+  /* item rows */
+  .item-row{
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    display:grid;
+    grid-template-columns: 34px 1fr;
+    gap: 12px;
+    align-items:start;
+    background: #fdfeff;
+  }
+  .item-num{
+    width:30px; height:30px;
+    border-radius: 8px;
+    background: var(--bg2);
+    color: var(--kt-darker);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:12.5px;
+  }
+  .item-body .work-name{ font-size: 13.6px; line-height:1.4; margin-bottom:4px; font-weight:600;}
+  .item-body .meta{ font-size:11.5px; color: var(--muted); margin-bottom:8px;}
+  .item-body .meta .note{ font-style: italic; }
+  .status-row{
+    display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;
+    align-items:center;
+  }
+  .percent-control{
+    display:flex; align-items:center; gap:8px;
+    background: #f2f8fd;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 6px 4px 14px;
+  }
+  .percent-control input[type="range"]{
+    width: 130px;
+    accent-color: var(--kt);
+  }
+  .percent-control input[type="number"]{
+    width: 56px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 5px 6px;
+    font-size: 13px;
+    font-weight:700;
+    color: var(--kt-darker);
+    text-align:center;
+  }
+  .percent-control input[type="number"]:focus{ outline: 2px solid var(--kt); outline-offset:1px; }
+  .percent-control .pct-sign{ font-size:12.5px; font-weight:700; color: var(--kt-darker); margin-left:-4px;}
+  .percent-swatch{
+    width:12px; height:12px; border-radius:50%;
+    background: var(--st0);
+    flex: 0 0 auto;
+  }
+  .status-chip{
+    border: 1.5px solid var(--line);
+    background: #fff;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight:700;
+    cursor:pointer;
+    color: var(--muted);
+    transition: all .12s ease;
+  }
+  .status-chip:hover{ border-color: var(--kt); color: var(--kt-darker); }
+  .status-chip.active{ background: var(--kt-darker); color:#fff; border-color:var(--kt-darker); }
+
+  .comment-input{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius: 7px;
+    padding: 7px 10px;
+    font-size: 12.8px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 34px;
+    color: var(--text);
+  }
+  .comment-input:focus{ outline: 2px solid var(--kt); outline-offset:1px; }
+  .fill-meta{
+    font-size: 10.8px;
+    color: var(--muted);
+    margin-top: 5px;
+    min-height: 14px;
+  }
+
+  .save-flash{
+    position:fixed; bottom:18px; right:18px;
+    background: var(--kt-darker); color:#fff;
+    padding: 9px 16px; border-radius: 8px;
+    font-size:12.5px; font-weight:600;
+    box-shadow: 0 4px 14px rgba(0,0,0,.2);
+    opacity:0; transform: translateY(8px);
+    transition: opacity .25s ease, transform .25s ease;
+    pointer-events:none;
+    z-index: 100;
+  }
+  .save-flash.show{ opacity:1; transform: translateY(0); }
+
+  .shared-note{
+    font-size: 11.5px;
+    color: var(--muted);
+    background: #f2f8fd;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+  }
+
+  .history-toggle{
+    background:none; border:none; color: var(--kt); font-size: 11px;
+    font-weight:700; cursor:pointer; padding: 2px 0; margin-top:2px;
+  }
+  .history-toggle:hover{ text-decoration: underline; }
+  .history-list{
+    margin-top: 8px;
+    border-top: 1px dashed var(--line);
+    padding-top: 8px;
+    display:none;
+  }
+  .history-list.open{ display:block; }
+  .history-entry{
+    font-size: 11.3px;
+    color: var(--muted);
+    padding: 4px 0;
+    border-bottom: 1px solid #f0f5f9;
+  }
+  .history-entry b{ color: var(--kt-darker); }
+
+  .journal-toolbar{
+    display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;
+  }
+  .journal-toolbar select{
+    padding:6px 10px; border-radius:7px; border:1px solid var(--line); font-size:12.5px;
+  }
+  table.journal-table{
+    width:100%; border-collapse: collapse; font-size: 12.3px;
+  }
+  table.journal-table th{
+    text-align:left; background: var(--bg2); color: var(--kt-darker);
+    padding: 8px 10px; position:sticky; top:0;
+  }
+  table.journal-table td{
+    padding: 7px 10px; border-bottom: 1px solid #eef4f9; vertical-align:top;
+  }
+  table.journal-table tr:hover td{ background: #f8fbfd; }
+
+  ::-webkit-scrollbar{height:8px;}
+  ::-webkit-scrollbar-thumb{background:#b9d3e4; border-radius:8px;}
+
+  @media (max-width: 640px){
+    header{padding:14px 16px;}
+    header img{height:40px;}
+    header h1{font-size:15.5px;}
+    .name-box input{width:110px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="data:image/png;base64,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" alt="Казактелеком">
+  <div class="titles">
+    <h1>Отчёт по текущему ремонту — 2026 год</h1>
+    <p>Актюбинский ДЭСД · ЦТО МС</p>
+  </div>
+  <div class="name-box">
+    <label>Ваше ФИО:</label>
+    <input id="myName" type="text" placeholder="Иванов И.И.">
+  </div>
+  <button class="admin-btn" id="adminBtn">Режим администратора</button>
+</header>
+
+<div class="toolbar">
+  <div class="summary-pill" id="summaryPill">Загрузка данных…</div>
+  <button class="export-btn" id="exportBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+    Выгрузить отчёт (Excel)
+  </button>
+</div>
+
+<div class="tabs" id="tabsBar"></div>
+
+<div id="storageWarning" style="display:none; max-width:1180px; margin:14px auto 0 auto; padding:0 16px;">
+  <div style="background:#fff3e0; border:1.5px solid #f0b84f; color:#7a4a00; border-radius:10px; padding:14px 18px; font-size:13.5px; line-height:1.5;">
+    ⚠️ <b>Сохранение данных не настроено.</b> В коде страницы не указана ссылка на Google Apps Script (переменная <code>API_URL</code>). Пока она не вставлена, все внесённые данные не будут сохраняться и пропадут при закрытии страницы.<br>
+    Настройте Google Таблицу и Apps Script по инструкции, вставьте полученную ссылку в переменную <code>API_URL</code> в начале файла и загрузите обновлённую версию на GitHub.
+  </div>
+</div>
+
+<main>
+  <div class="panel" id="panelContent">
+    <p class="sub">Загрузка…</p>
+  </div>
+</main>
+
+<div class="save-flash" id="saveFlash">Сохранено</div>
+
+<script>
+const DISTRICTS = [{"district": "ЛКЦ ЦТО МС", "items": [{"num": 1, "quarter": "1., 2., 3., 4.", "dates": "", "name": "Текущий ремонт  АТС-54 По ул. Военный городок. (кол.абонентов 47). Строительства на GPON.", "note": ""}, {"num": 2, "quarter": "", "dates": "", "name": "Текущий ремонт  АТС-51 По Район Сазда-3 Строительства на GPON.", "note": ""}, {"num": 3, "quarter": "", "dates": "", "name": "Текущий ремонт  АТС-51 По Район Сазда-4 Строительства на GPON.", "note": ""}, {"num": 4, "quarter": "", "dates": "", "name": "АТС-51 По Район Сазда-2 переключение  РШ5122 на АД54/0/4", "note": ""}, {"num": 5, "quarter": "", "dates": "", "name": "ТР по приведению ККС к техническим нормам зоне действия АТС-23 5 шт. \nПо 11 микрорайону д.36 ККС№1206,322,610,612,613.", "note": ""}, {"num": 6, "quarter": "", "dates": "", "name": "ТР по приведению ККС к техническим нормам зоне действия  АТС 21   5 шт . \nПо ул. Гарнизонная КК С№649,669,668,667,662.", "note": ""}, {"num": 7, "quarter": "", "dates": "", "name": "ТР по приведению ККС к техническим нормам зоне действия  АТС 54   5 шт.\nПо ул. Сатпаева д.15 ККС №1168,858,998,999,1145.", "note": ""}, {"num": 8, "quarter": "", "dates": "", "name": "«Текущий ремонт существующего подводного перехода магистральной сети через реку Илек» ОК-144 в ж/м Заречный.", "note": "Добавленный объект"}, {"num": 9, "quarter": "", "dates": "", "name": "«Текущий ремонт распределительной сети 41разъезд   г.Актобе» ОК48 в районе 41го разъезда г.Актобе.", "note": "Добавленный объект"}]}, {"district": "Алгинский ЛТЦ ЦТО МС", "items": [{"num": 8, "quarter": "2., 3., 4.", "dates": "июнь", "name": "ТР по выправке опор: Алга (13шт)  Тамды (7шт) , АТС 35 пос Бестамак (9шт)", "note": ""}, {"num": 9, "quarter": "", "dates": "июль", "name": "ТР (кабельные колодцы) ККС-6шт. АТС-41", "note": ""}, {"num": 10, "quarter": "", "dates": "октябрь", "name": "ТР Демонтаж медной сети по ул Есет-батыр дом 25,27. ул Байтурсынова дом 17,17а. ул 2 мкр дом 2( после переключения на оптику по программе \"Тазарту\"  )", "note": ""}]}, {"district": "Кобдинский ЛТЦ ЦТО МС", "items": [{"num": 11, "quarter": "2., 3., 4.", "dates": "Январь-июнь", "name": "ТР Демонтаж ОУ (40 шт) с. Кобда (переключеных на оптику по программе \"Тазарту\".)", "note": ""}, {"num": 12, "quarter": "", "dates": "май", "name": "ППР и инвентаризация ПСУ с.Кобда ( 5 ККС )", "note": ""}, {"num": 13, "quarter": "", "dates": "июлб-сентябрь", "name": "ТР по приведению аварийных опор к техническим нормам с. Кобда, с. Талдысай.", "note": ""}, {"num": 14, "quarter": "", "dates": "январь-декабрь", "name": "ТР по переключению с меди на оптику абонентов с. Кобда 762 абонент", "note": ""}, {"num": 15, "quarter": "", "dates": "январь-декабрь", "name": "ТР Демонтаж медной сети с. Кобда (после переключения на оптику по программе \"Тазарту\".)", "note": ""}]}, {"district": "Уилский ЛТУ Кобдинского ЛТЦ ЦТО МС", "items": [{"num": 16, "quarter": "2., 3., 4.", "dates": "июнь", "name": "План ТР (кабельные колодцы) ККС-10шт. замена люков АТС-21", "note": "перенос с 2025 года"}, {"num": 17, "quarter": "", "dates": "январь-декабрь", "name": "Переключение АТС на GPON, с.Уил  (120 абонентов)", "note": ""}, {"num": 18, "quarter": "", "dates": "август", "name": "Аварийные опоры Р/Ц Уил в количестве опора деревянная 8шт., ж/б пристава -14 шт.", "note": ""}]}, {"district": "Темирский ЛТЦ", "items": [{"num": 19, "quarter": "2., 3., 4.", "dates": "июнь", "name": "ТР по приведению ККС к техническим нормам в зоне действие п. Кенкияк АТС-26 (1 шт.)", "note": ""}, {"num": 20, "quarter": "", "dates": "июлб-сентябрь", "name": "ТР по приведению ККС к техническим нормам в зоне действие п. Шубаркудык АТС-22 Вынос мкр. Кызылжар (3 шт.).", "note": ""}, {"num": 21, "quarter": "", "dates": "июль", "name": "ТР по приведению аварийных опор к теническим нормам в зоне действие АТС-28 с. Копа  (8 шт.)", "note": ""}, {"num": 22, "quarter": "", "dates": "июль", "name": "ТР по приведению аварийных опор к теническим нормам в зоне действие АТС-25 с.Аксай (4 шт.)", "note": ""}, {"num": 23, "quarter": "", "dates": "июль", "name": "ТР по приведению аварийных опор к теническим нормам в зоне действие АТС-27 (12 шт.)", "note": ""}, {"num": 24, "quarter": "", "dates": "январь-декабрь", "name": "Переключение АТС на GPON, п.Шубаркудык ( 130 абонентов)", "note": ""}]}, {"district": "Байганинский ЛТУ Темирского ЛТЦ ЦТО МС", "items": [{"num": 25, "quarter": "2., 3., 4.", "dates": "май-июнь", "name": "Текущий ремонт кабельных колодцев в сооружений ГТС с.Карауылкелды ККС № 615, 7006, 7009, 607,608.", "note": ""}, {"num": 26, "quarter": "", "dates": "май-июнь", "name": "Текущий ремонт на участке РШ 2202 замена кабеля (емкостью 30 пар) по улице Бармак батыра", "note": ""}, {"num": 27, "quarter": "", "dates": "июнь", "name": "Текущий ремонт на участке РШ 2203 замена кабеля (емкостью 10 пар) по улице Жагалау", "note": ""}, {"num": 28, "quarter": "", "dates": "сентябрь-октябрь", "name": "Текущий ремонт перенос (АТС-22) участок с.Карауылкелды, переключение абонентов на GPON (250 абонентов)", "note": "перенос с 2025 года"}, {"num": 29, "quarter": "", "dates": "", "name": "Текущий ремонт по замене аварийных опор, ж/б пристав, выправка, крепление (подтягивание) опор на участке РШ-2201,2202,2203,2204 и СТС. Ж/Б приставы ПР 0,8 -20 шт., Деревянная опора до 6,5 метров-38 шт.", "note": ""}]}, {"district": "Мугалжарский ЛТЦ ЦТО МС", "items": [{"num": 30, "quarter": "2., 3., 4.", "dates": "июнь-июль", "name": "ТР по выправке опор: Кандагач (17 шт)  пос. Сагашили (3 шт) , пос. Аккемер (3 шт)", "note": ""}, {"num": 31, "quarter": "", "dates": "июль-август", "name": "ТР (кабельные колодцы) ККС-5шт. АТС-41", "note": ""}, {"num": 32, "quarter": "", "dates": "октябрь-декабрь", "name": "ТР Демонтаж медной сети по мкр Молодежный  №80,81,1Б.дом.( после переключения на оптику по программе \"Тазарту\"  )", "note": ""}]}, {"district": "Эмбенский ЛТУ Мугалжарского ЛТЦ ЦТО МС", "items": [{"num": 33, "quarter": "2., 3., 4.", "dates": "май-июнь", "name": "Текущий ремонт кабельных колодцев в сооружений ГТС г.Эмба ККС № 605,609,616,635,636", "note": ""}, {"num": 34, "quarter": "", "dates": "май-июнь", "name": "Текущий ремонт на участке РШ 2207 замена кабеля (емкостью 50,30,20 пар) приведение к тех. норме, уход свыше 1000 В, РС-3 по улице Толе би", "note": ""}, {"num": 35, "quarter": "", "dates": "июнь", "name": "Текущий ремонт уход от ОП свыше 1000 В  с абонентскими проводами ЛС г.Эмба, улица Валиханова", "note": ""}, {"num": 36, "quarter": "", "dates": "сентябрь-октябрь", "name": "Текущий ремонт перенос (АТС-52) участок г.Жем, переключение абонентов на GPON дом №55 (20 абонентов)", "note": ""}, {"num": 37, "quarter": "", "dates": "сентябрь-октябрь", "name": "Переключение АТС на GPON, г.Эмба  (50 абонентов) на участке дом №11, 17", "note": ""}, {"num": 38, "quarter": "", "dates": "сентябрь-октябрь", "name": "Текущий ремонт по замене аварийных опор, ж/б пристав, выправка, крепление (подтягивание) опор, демонтаж железобетонных опор на участке РШ-2207", "note": ""}]}, {"district": "Шалкарский ЛТЦ ЦТО МС", "items": [{"num": 39, "quarter": "3.", "dates": "июль", "name": "ТР замене аварийных опор, ж/б приставь и выправка опор. г.Шалкар. пристава ж/б (шт)-30.", "note": ""}, {"num": 40, "quarter": "", "dates": "август", "name": "ТР ККС г.Шалкар 5 шт.", "note": ""}, {"num": 41, "quarter": "", "dates": "сентябрь", "name": "ПТР Переключение АТС на GPON, с.Шалкар  (200 абонентов)", "note": ""}]}, {"district": "Иргизский ЛТУ Шалкарского ЛТЦ ЦТО МС", "items": [{"num": 42, "quarter": "2., 3., 4.", "dates": "июль", "name": "ПТР  ККС-10шт.", "note": ""}, {"num": 43, "quarter": "", "dates": "август", "name": "АВ опоры Р/Ц Иргиз  ж/б пристава в количестве -14 шт.", "note": ""}, {"num": 44, "quarter": "", "dates": "апрель-декабрь", "name": "ТР на ШР2105  строительство на GPON.", "note": ""}]}, {"district": "Айтекебийский ЛТУ Хромтауского ЛТЦ ЦТО МС", "items": [{"num": 45, "quarter": "2., 3.", "dates": "июнь", "name": "ТР замене аварийных опор, ж/б приставь и выправка опор.Айтекебийского ЛТУ", "note": ""}, {"num": 46, "quarter": "", "dates": "июль", "name": "ТР ККС с.т Жургенова - 5 шт.", "note": ""}]}, {"district": "Каргалинский ЛТЦ ЦТО МС", "items": [{"num": 47, "quarter": "2., 3., 4.", "dates": "май-июнь", "name": "ТР Инвентаризация ККС село Бадамша 5 шт.", "note": ""}, {"num": 48, "quarter": "", "dates": "август", "name": "ТР Выправка опор 25 шт.", "note": ""}]}, {"district": "Хромтауский ЛТЦ ЦТО МС", "items": [{"num": 49, "quarter": "2., 3., 4.", "dates": "январь-декабрь", "name": "ТР Демонтаж ОУ (452шт) г.Хромтау (переключеных на оптику по проекту \"Тазарту\")", "note": ""}, {"num": 50, "quarter": "", "dates": "июнь", "name": "ТР Замена аварийных ж/б пристав и выправка опор по г.Хромтау, п.Дон, п.Акжар", "note": ""}, {"num": 51, "quarter": "", "dates": "январь-декабрь", "name": "ТР Демонтаж медной сети  ШР- 2101,2111,2112,2113,2121,2123, пр. Победы д.8 (после переключения на GPON по проекту \"Тазарту\" - 25 домов)", "note": ""}]}, {"district": "Мартукский ЛТЦ ЦТО МС", "items": [{"num": 52, "quarter": "1.,2., 3., 4.", "dates": "март", "name": "ТР Демонтаж ОУ (45шт) с. Мартук (переключеных на оптику по программе \"Тазарту\".)", "note": ""}, {"num": 53, "quarter": "", "dates": "май", "name": "ТР по замене кабеля ТПП-50х2х0,4 с. Саржансай.", "note": ""}, {"num": 54, "quarter": "", "dates": "июль", "name": "ТР по приведению аварийных опор к техническим нормам с. Мартук, с. Родниковка, с. Сарыжар с. Байтурасай.", "note": ""}, {"num": 55, "quarter": "", "dates": "январь-декабрь", "name": "ТР по переключению с меди на оптику абонентов с. Мартук 1627 абонент", "note": ""}, {"num": 56, "quarter": "", "dates": "январь-декабрь", "name": "ТР Демонтаж медной сети с. Мартук (после переключения на оптику по программе \"Тазарту\".)", "note": ""}]}];
+const ADMIN_CODE = 'admin2026'; // Код администратора. Чтобы изменить — поменяйте это значение в файле.
+
+let activeTab = 'overview';
+let reportData = {}; // { districtIdx: { itemNum: {status, comment, by, at, history:[{status,comment,by,at,ts}]} } }
+let myName = '';
+let isAdmin = false;
+const saveTimers = {};
+const openHistory = {}; // { "dIdx-num": true } which history panels are expanded
+
+// ==== Хранилище данных: Google Apps Script + Google Таблица ====
+// Вставьте сюда ссылку на ваш развёрнутый Apps Script Web App (заканчивается на /exec).
+// Инструкция по настройке — в сопроводительном сообщении.
+const API_URL = "ВСТАВЬТЕ_ССЫЛКУ_НА_APPS_SCRIPT_СЮДА";
+
+function apiConfigured(){
+  return API_URL && API_URL.indexOf('ВСТАВЬТЕ_ССЫЛКУ') === -1 && API_URL.indexOf('http') === 0;
+}
+
+async function apiBulkGet(prefix){
+  const res = await fetch(API_URL + '?action=bulkGet&prefix=' + encodeURIComponent(prefix));
+  if(!res.ok) throw new Error('bulkGet failed: ' + res.status);
+  const data = await res.json();
+  return data.data || {};
+}
+
+async function apiSet(key, value){
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // избегаем CORS preflight
+    body: JSON.stringify({ action: 'set', key: key, value: value })
+  });
+  if(!res.ok) throw new Error('set failed: ' + res.status);
+  return res.json();
+}
+
+function keyFor(idx){ return 'trplan2026:district:' + idx; }
+
+document.getElementById('adminBtn').addEventListener('click', ()=>{
+  if(isAdmin){
+    isAdmin = false;
+    if(activeTab === 'journal') activeTab = 'overview';
+    updateAdminBtn();
+    renderTabs();
+    renderPanel();
+    return;
+  }
+  const code = prompt('Введите код администратора:');
+  if(code === null) return;
+  if(code.trim() === ADMIN_CODE){
+    isAdmin = true;
+    updateAdminBtn();
+    renderTabs();
+    renderPanel();
+  }else{
+    alert('Неверный код.');
+  }
+});
+
+function updateAdminBtn(){
+  const btn = document.getElementById('adminBtn');
+  btn.textContent = isAdmin ? 'Администратор: вкл' : 'Режим администратора';
+  btn.classList.toggle('on', isAdmin);
+}
+
+async function loadAll(){
+  if(!apiConfigured()){
+    const warn = document.getElementById('storageWarning');
+    if(warn) warn.style.display = 'block';
+  }
+
+  try{
+    const savedName = localStorage.getItem('trplan2026:myname');
+    if(savedName){ myName = savedName; document.getElementById('myName').value = myName; }
+  }catch(e){}
+
+  DISTRICTS.forEach((d,i)=>{ reportData[i] = {}; });
+
+  if(apiConfigured()){
+    try{
+      const bulk = await apiBulkGet('trplan2026:district:');
+      DISTRICTS.forEach((d, i)=>{
+        const raw = bulk[keyFor(i)];
+        reportData[i] = raw ? JSON.parse(raw) : {};
+      });
+    }catch(e){
+      console.error('load failed', e);
+      alert('Не удалось загрузить данные с сервера. Проверьте ссылку API_URL и подключение к интернету.');
+    }
+  }
+
+  renderTabs();
+  renderPanel();
+  renderSummary();
+}
+
+function getItemState(dIdx, num){
+  const d = reportData[dIdx] || {};
+  return d[num] || {status:0, comment:'', by:'', at:'', history:[]};
+}
+
+function setItemState(dIdx, num, patch){
+  if(!reportData[dIdx]) reportData[dIdx] = {};
+  const cur = getItemState(dIdx, num);
+  const merged = Object.assign({}, cur, patch);
+  const entry = { status: merged.status, comment: merged.comment, by: merged.by, at: merged.at, ts: Date.now() };
+  merged.history = (cur.history || []).concat([entry]);
+  reportData[dIdx][num] = merged;
+  scheduleSave(dIdx);
+}
+
+function scheduleSave(dIdx){
+  clearTimeout(saveTimers[dIdx]);
+  saveTimers[dIdx] = setTimeout(async ()=>{
+    if(!apiConfigured()){
+      console.warn('API_URL не настроен — сохранение пропущено');
+      return;
+    }
+    try{
+      await apiSet(keyFor(dIdx), JSON.stringify(reportData[dIdx]));
+      flashSave();
+    }catch(e){
+      console.error('save failed', e);
+      alert('Не удалось сохранить изменения. Проверьте интернет-соединение и попробуйте ещё раз.');
+    }
+    renderTabs();
+    renderSummary();
+  }, 600);
+}
+
+function flashSave(){
+  const el = document.getElementById('saveFlash');
+  el.classList.add('show');
+  clearTimeout(window.__flashTimer);
+  window.__flashTimer = setTimeout(()=> el.classList.remove('show'), 1400);
+}
+
+function districtStats(dIdx){
+  const d = DISTRICTS[dIdx];
+  const data = reportData[dIdx] || {};
+  let sum = 0;
+  d.items.forEach(it=>{
+    const st = data[it.num];
+    sum += st ? Number(st.status)||0 : 0;
+  });
+  const pct = d.items.length ? (sum / d.items.length) : 0;
+  return { sum, total: d.items.length, pct };
+}
+
+function overallStats(){
+  let sumAll = 0, totalAll = 0;
+  DISTRICTS.forEach((d, i)=>{
+    const s = districtStats(i);
+    sumAll += s.sum; totalAll += s.total;
+  });
+  return { sumAll, totalAll, pct: totalAll ? sumAll/totalAll : 0 };
+}
+
+function renderSummary(){
+  const s = overallStats();
+  document.getElementById('summaryPill').innerHTML =
+    'Выполнено: <b>' + s.sumAll.toFixed(1) + ' из ' + s.totalAll + '</b> объектов &nbsp;·&nbsp; <b>' + Math.round(s.pct*100) + '%</b>';
+}
+
+function renderTabs(){
+  const bar = document.getElementById('tabsBar');
+  let html = '<button class="tab-btn ' + (activeTab==='overview'?'active':'') + '" data-tab="overview">Обзор</button>';
+  DISTRICTS.forEach((d, i)=>{
+    const s = districtStats(i);
+    let badgeClass = '';
+    if(s.pct >= 0.999) badgeClass = 'done';
+    else if(s.pct > 0) badgeClass = 'mid';
+    html += '<button class="tab-btn ' + (activeTab===String(i)?'active':'') + '" data-tab="' + i + '">' +
+      escapeHtml(shortName(d.district)) +
+      '<span class="tab-badge ' + badgeClass + '">' + Math.round(s.pct*100) + '%</span>' +
+      '</button>';
+  });
+  bar.innerHTML = html;
+  if(isAdmin){
+    bar.innerHTML += '<button class="tab-btn ' + (activeTab==='journal'?'active':'') + '" data-tab="journal">📋 Журнал (админ)</button>';
+  }
+  bar.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      activeTab = btn.getAttribute('data-tab');
+      renderTabs();
+      renderPanel();
+    });
+  });
+}
+
+function shortName(name){
+  return name.replace(' ЦТО МС','').replace('ЦТО МС','').trim();
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function renderPanel(){
+  const panel = document.getElementById('panelContent');
+  if(activeTab === 'journal' && !isAdmin) activeTab = 'overview';
+
+  if(activeTab === 'journal'){
+    renderJournal(panel);
+    return;
+  }
+
+  if(activeTab === 'overview'){
+    let cards = '';
+    DISTRICTS.forEach((d,i)=>{
+      const s = districtStats(i);
+      cards += '<div class="ov-card" data-goto="' + i + '">' +
+        '<div class="name">' + escapeHtml(d.district) + '</div>' +
+        '<div class="count">' + d.items.length + ' объект(ов)</div>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + (s.pct*100) + '%"></div></div>' +
+        '<div class="pct">' + Math.round(s.pct*100) + '%</div>' +
+      '</div>';
+    });
+    panel.innerHTML =
+      '<h2>Общий прогресс по районам</h2>' +
+      '<p class="sub">Актюбинский ДЭСД · план текущего ремонта на 2026 год · нажмите на карточку района, чтобы открыть отчёт</p>' +
+      '<div class="shared-note">Данные отчёта хранятся в общей Google Таблице — все, кто пользуется этим сайтом, видят и обновляют один и тот же отчёт.</div>' +
+      '<div class="ov-grid">' + cards + '</div>';
+    panel.querySelectorAll('.ov-card').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        activeTab = card.getAttribute('data-goto');
+        renderTabs();
+        renderPanel();
+      });
+    });
+    return;
+  }
+
+  const dIdx = Number(activeTab);
+  const d = DISTRICTS[dIdx];
+  const s = districtStats(dIdx);
+
+  let rows = '';
+  d.items.forEach(it=>{
+    const st = getItemState(dIdx, it.num);
+    const metaLine = [it.dates, it.quarter ? ('кв. ' + it.quarter.replace(/\./g,'')) : ''].filter(Boolean).join(' · ');
+    rows += '<div class="item-row">' +
+      '<div class="item-num">' + it.num + '</div>' +
+      '<div class="item-body">' +
+        '<div class="work-name">' + escapeHtml(it.name) + '</div>' +
+        '<div class="meta">' + (metaLine ? escapeHtml(metaLine) : '&nbsp;') + (it.note ? ' <span class="note">· ' + escapeHtml(it.note) + '</span>' : '') + '</div>' +
+        '<div class="status-row">' +
+          '<div class="percent-control">' +
+            '<span class="percent-swatch" id="swatch-' + dIdx + '-' + it.num + '" style="background:' + swatchColor(st.status) + '"></span>' +
+            '<input type="range" min="0" max="100" step="1" value="' + Math.round((Number(st.status)||0)*100) + '" data-district="' + dIdx + '" data-num="' + it.num + '" class="pct-range">' +
+            '<input type="number" min="0" max="100" step="1" value="' + Math.round((Number(st.status)||0)*100) + '" data-district="' + dIdx + '" data-num="' + it.num + '" class="pct-number">' +
+            '<span class="pct-sign">%</span>' +
+          '</div>' +
+          quickChip(dIdx, it.num, 0, '0') +
+          quickChip(dIdx, it.num, 20, '20') +
+          quickChip(dIdx, it.num, 50, '50') +
+          quickChip(dIdx, it.num, 100, '100') +
+        '</div>' +
+        '<textarea class="comment-input" data-district="' + dIdx + '" data-num="' + it.num + '" placeholder="Комментарий к выполнению...">' + escapeHtml(st.comment||'') + '</textarea>' +
+        '<div class="fill-meta" id="meta-' + dIdx + '-' + it.num + '">' + fillMetaText(st) + '</div>' +
+        (isAdmin ? adminHistoryBlock(dIdx, it.num, st) : '') +
+      '</div>' +
+    '</div>';
+  });
+
+  panel.innerHTML =
+    '<h2>' + escapeHtml(d.district) + '</h2>' +
+    '<p class="sub">' + d.items.length + ' объект(ов) · выполнено ' + s.sum.toFixed(1) + ' (' + Math.round(s.pct*100) + '%)</p>' +
+    rows;
+
+  function applyPercent(dI, num, pctValue){
+    const v = Math.max(0, Math.min(100, Math.round(Number(pctValue)||0)));
+    const status = v / 100;
+    const now = new Date();
+    setItemState(dI, num, { status: status, by: myName || 'без имени', at: now.toLocaleString('ru-RU') });
+    syncPercentControls(dI, num, v);
+    const metaEl = document.getElementById('meta-' + dI + '-' + num);
+    if(metaEl) metaEl.innerHTML = fillMetaText(getItemState(dI, num));
+  }
+
+  function syncPercentControls(dI, num, v){
+    const range = panel.querySelector('.pct-range[data-district="'+dI+'"][data-num="'+num+'"]');
+    const number = panel.querySelector('.pct-number[data-district="'+dI+'"][data-num="'+num+'"]');
+    if(range) range.value = v;
+    if(number) number.value = v;
+    const swatch = document.getElementById('swatch-' + dI + '-' + num);
+    if(swatch) swatch.style.background = swatchColor(v/100);
+    panel.querySelectorAll('.status-chip[data-district="'+dI+'"][data-num="'+num+'"]').forEach(c=>{
+      c.classList.toggle('active', Number(c.getAttribute('data-v')) === v);
+    });
+  }
+
+  panel.querySelectorAll('.pct-range').forEach(el=>{
+    el.addEventListener('input', ()=>{
+      applyPercent(Number(el.getAttribute('data-district')), Number(el.getAttribute('data-num')), el.value);
+    });
+  });
+  panel.querySelectorAll('.pct-number').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      applyPercent(Number(el.getAttribute('data-district')), Number(el.getAttribute('data-num')), el.value);
+    });
+  });
+  panel.querySelectorAll('.status-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const dI = Number(chip.getAttribute('data-district'));
+      const num = Number(chip.getAttribute('data-num'));
+      const v = Number(chip.getAttribute('data-v'));
+      applyPercent(dI, num, v);
+    });
+  });
+
+  panel.querySelectorAll('.comment-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const dI = Number(inp.getAttribute('data-district'));
+      const num = Number(inp.getAttribute('data-num'));
+      const now = new Date();
+      setItemState(dI, num, { comment: inp.value, by: myName || 'без имени', at: now.toLocaleString('ru-RU') });
+      const metaEl = document.getElementById('meta-' + dI + '-' + num);
+      if(metaEl) metaEl.innerHTML = fillMetaText(getItemState(dI, num));
+    });
+  });
+
+  if(isAdmin){
+    panel.querySelectorAll('.history-toggle').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const dI = btn.getAttribute('data-district');
+        const num = btn.getAttribute('data-num');
+        const id = dI + '-' + num;
+        openHistory[id] = !openHistory[id];
+        const list = document.getElementById('hist-' + id);
+        if(list) list.classList.toggle('open', openHistory[id]);
+        btn.textContent = (openHistory[id] ? 'Скрыть историю' : 'История (') + (openHistory[id] ? '' : (getItemState(Number(dI), Number(num)).history||[]).length + ')');
+      });
+    });
+  }
+}
+
+function adminHistoryBlock(dIdx, num, st){
+  const id = dIdx + '-' + num;
+  const hist = (st.history || []).slice().reverse();
+  const open = !!openHistory[id];
+  let items = hist.map(h=>{
+    return '<div class="history-entry"><b>' + Math.round((Number(h.status)||0)*100) + '%</b> · ' +
+      escapeHtml(h.by || '—') + ' · ' + escapeHtml(h.at || '') +
+      (h.comment ? (' · «' + escapeHtml(h.comment) + '»') : '') +
+      '</div>';
+  }).join('');
+  if(!items) items = '<div class="history-entry">Изменений пока нет.</div>';
+  return '<button type="button" class="history-toggle" data-district="' + dIdx + '" data-num="' + num + '">' +
+      (open ? 'Скрыть историю' : 'История (' + hist.length + ')') +
+    '</button>' +
+    '<div class="history-list ' + (open?'open':'') + '" id="hist-' + id + '">' + items + '</div>';
+}
+
+function renderJournal(panel){
+  const entries = [];
+  DISTRICTS.forEach((d, dIdx)=>{
+    d.items.forEach(it=>{
+      const st = getItemState(dIdx, it.num);
+      (st.history || []).forEach(h=>{
+        entries.push({
+          ts: h.ts || 0,
+          district: d.district,
+          num: it.num,
+          name: it.name,
+          status: Number(h.status)||0,
+          comment: h.comment || '',
+          by: h.by || '—',
+          at: h.at || ''
+        });
+      });
+    });
+  });
+  entries.sort((a,b)=> b.ts - a.ts);
+
+  let rowsHtml = entries.map(e=>{
+    return '<tr>' +
+      '<td>' + escapeHtml(e.at) + '</td>' +
+      '<td>' + escapeHtml(shortName(e.district)) + '</td>' +
+      '<td>№' + e.num + ' — ' + escapeHtml(e.name.length > 60 ? e.name.slice(0,60)+'…' : e.name) + '</td>' +
+      '<td><b>' + Math.round(e.status*100) + '%</b></td>' +
+      '<td>' + escapeHtml(e.comment) + '</td>' +
+      '<td>' + escapeHtml(e.by) + '</td>' +
+    '</tr>';
+  }).join('');
+
+  if(!entries.length){
+    rowsHtml = '<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:20px;">Изменений пока никто не вносил.</td></tr>';
+  }
+
+  panel.innerHTML =
+    '<h2>Журнал действий</h2>' +
+    '<p class="sub">Полная история всех изменений по всем районам · видно только администратору · всего записей: ' + entries.length + '</p>' +
+    '<div style="max-height:65vh; overflow:auto; border:1px solid var(--line); border-radius:10px;">' +
+    '<table class="journal-table">' +
+      '<thead><tr><th>Дата</th><th>Район</th><th>Объект</th><th>%</th><th>Комментарий</th><th>Заполнил</th></tr></thead>' +
+      '<tbody>' + rowsHtml + '</tbody>' +
+    '</table>' +
+    '</div>';
+}
+
+function fillMetaText(st){
+  if(!st.by && !st.at) return '&nbsp;';
+  return 'Обновил: ' + escapeHtml(st.by||'—') + (st.at ? (' · ' + escapeHtml(st.at)) : '');
+}
+
+function quickChip(dIdx, num, pctVal, label){
+  return '<button type="button" class="status-chip" data-district="' + dIdx + '" data-num="' + num + '" data-v="' + pctVal + '">' + label + '</button>';
+}
+
+function swatchColor(status){
+  const v = Number(status)||0;
+  if(v <= 0) return 'var(--st0)';
+  if(v < 0.5) return 'var(--st20)';
+  if(v < 1) return 'var(--st50)';
+  return 'var(--st100)';
+}
+
+document.getElementById('myName').addEventListener('change', (e)=>{
+  myName = e.target.value.trim();
+  try{ localStorage.setItem('trplan2026:myname', myName); }catch(err){}
+});
+
+document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+
+function exportToExcel(){
+  const aoa = [];
+  aoa.push(['Отчёт по текущему ремонту на 2026 год — Актюбинский ДЭСД (ЦТО МС)']);
+  aoa.push(['Выгружено: ' + new Date().toLocaleString('ru-RU')]);
+  aoa.push([]);
+  aoa.push(['№','Квартал','Сроки выполнения','Наименование подразделения / работ','План','Факт','% исполнения','Примечание (план)','Комментарий отчёта','Заполнил','Дата обновления']);
+
+  DISTRICTS.forEach((d, dIdx)=>{
+    const s = districtStats(dIdx);
+    aoa.push([null, null, null, d.district, d.items.length, Number(s.sum.toFixed(2)), Number((s.pct).toFixed(3)), null, null, null, null]);
+    d.items.forEach(it=>{
+      const st = getItemState(dIdx, it.num);
+      aoa.push([
+        it.num,
+        it.quarter || '',
+        it.dates || '',
+        it.name,
+        1,
+        Number(st.status)||0,
+        Number(st.status)||0,
+        it.note || '',
+        st.comment || '',
+        st.by || '',
+        st.at || ''
+      ]);
+    });
+    aoa.push([null, null, null, 'ИТОГО по ' + d.district, d.items.length, Number(s.sum.toFixed(2)), Number(s.pct.toFixed(3)), null, null, null, null]);
+    aoa.push([]);
+  });
+
+  const overall = overallStats();
+  aoa.push(['','','','ВСЕГО ПО ДЭСД', overall.totalAll, Number(overall.sumAll.toFixed(2)), Number(overall.pct.toFixed(3)),'','','','']);
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [
+    {wch:5},{wch:12},{wch:16},{wch:55},{wch:8},{wch:8},{wch:12},{wch:22},{wch:32},{wch:16},{wch:18}
+  ];
+  ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:10} }, { s:{r:1,c:0}, e:{r:1,c:10} }];
+
+  // percent format for % column
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for(let R = 4; R <= range.e.r; R++){
+    const cellRef = XLSX.utils.encode_cell({r:R, c:6});
+    if(ws[cellRef] && typeof ws[cellRef].v === 'number'){
+      ws[cellRef].z = '0%';
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Отчет ТР 2026');
+  XLSX.writeFile(wb, 'Отчет_ТР_2026_Актюбинский_ДЭСД.xlsx');
+}
+
+loadAll();
+</script>
+</body>
+</html>
