@@ -1337,7 +1337,31 @@ async function renderPPRPanel(){
       '<p class="sub">Актюбинский ДЭСД · план и % считаются за выбранный период · нажмите на карточку района, чтобы открыть форму заполнения</p>' +
       '<div class="shared-note">Данные ППР хранятся в той же общей Google Таблице, отдельно от данных ТР.</div>' +
       (!canEdit() ? '<div class="lock-note">🔒 Заполнение заблокировано. Нажмите «Код для заполнения» вверху, чтобы вносить данные.</div>' : '') +
+      (isAdmin ? '<button type="button" id="pprResetAllBtn" class="admin-btn" style="margin-bottom:14px; background:#fbe1de; color:#a32f1f; border-color:#a32f1f;">🗑 Очистить факты ВСЕХ районов за выбранный период</button>' : '') +
       '<div class="ov-grid">' + cards + '</div>';
+    if(isAdmin){
+      const resetAllBtn = panel.querySelector('#pprResetAllBtn');
+      if(resetAllBtn){
+        resetAllBtn.addEventListener('click', ()=>{
+          const ok = confirm(
+            'Обнулить ВСЕ введённые факты (Осмотр и ТО, по всем районам и всем типам объектов) ' +
+            'за период ' + pprPeriodLabel() + '?\n\n' +
+            'Это затронет ВСЕ 14 районов сразу. Действие нельзя отменить — используйте, ' +
+            'если данные за этот период были внесены ошибочно (например, тестовым импортом не за тот период).'
+          );
+          if(!ok) return;
+          PPR_DISTRICTS.forEach((d,i)=>{
+            d.objectTypes.forEach(ot=>{
+              months.forEach(month=>{
+                setPPRItemState(i, month, ot.code, 'osmotr', 0, 'Сброс администратором (все районы)');
+                setPPRItemState(i, month, ot.code, 'to', 0, 'Сброс администратором (все районы)');
+              });
+            });
+          });
+          renderPanel();
+        });
+      }
+    }
     panel.querySelectorAll('.ov-card').forEach(card=>{
       card.addEventListener('click', ()=>{
         pprActiveTab = card.getAttribute('data-ppr-goto');
@@ -1403,7 +1427,30 @@ async function renderPPRPanel(){
     '<h2>' + escapeHtml(d.district) + ' — ' + pprPeriodLabel() + '</h2>' +
     '<p class="sub">Осмотр ' + s.planOsmotr + '/' + s.factOsmotr + ' — <b>' + Math.round(s.pctOsmotr*100) + '%</b> · ТО ' + s.planTo + '/' + s.factTo + ' — <b>' + Math.round(s.pctTo*100) + '%</b> · план и % — за выбранный период</p>' +
     (locked ? '<div class="lock-note">🔒 Заполнение заблокировано. Нажмите «Код для заполнения» вверху страницы.</div>' : '') +
+    (isAdmin ? '<button type="button" id="pprResetBtn" class="admin-btn" style="margin-bottom:14px; background:#fbe1de; color:#a32f1f; border-color:#a32f1f;">🗑 Очистить факты этого района за выбранный период</button>' : '') +
     rows;
+
+  if(isAdmin){
+    const resetBtn = panel.querySelector('#pprResetBtn');
+    if(resetBtn){
+      resetBtn.addEventListener('click', ()=>{
+        const ok = confirm(
+          'Обнулить ВСЕ введённые факты (Осмотр и ТО, по всем типам объектов) ' +
+          'для района «' + d.district + '» за период ' + pprPeriodLabel() + '?\n\n' +
+          'Действие нельзя отменить — используйте, если данные за этот период были внесены ошибочно ' +
+          '(например, импортом не за тот период).'
+        );
+        if(!ok) return;
+        d.objectTypes.forEach(ot=>{
+          months.forEach(month=>{
+            setPPRItemState(dIdx, month, ot.code, 'osmotr', 0, 'Сброс администратором');
+            setPPRItemState(dIdx, month, ot.code, 'to', 0, 'Сброс администратором');
+          });
+        });
+        renderPanel();
+      });
+    }
+  }
 
   panel.querySelectorAll('.ppr-fact-input').forEach(inp=>{
     inp.addEventListener('change', ()=>{
