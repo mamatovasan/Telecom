@@ -929,7 +929,9 @@ function buildPPRChartSVG(months){
     bars += '<rect x="' + chartX + '" y="' + y + '" width="' + barMaxW + '" height="' + barH + '" fill="#EEF3F8" rx="3"/>';
     bars += '<rect x="' + chartX + '" y="' + y + '" width="' + tW + '" height="' + barH + '" fill="' + tColor + '" rx="3"/>';
     bars += '<text x="' + (chartX + barMaxW + 8) + '" y="' + (y + barH - 4) + '" font-size="10.5" font-weight="700" fill="#16232E">ТО ' + Math.round(r.pctT*100) + '%</text>';
-    y += barH + groupGap;
+    y += barH + (groupGap * 0.45);
+    bars += '<line x1="0" y1="' + y + '" x2="' + (chartX + barMaxW + 60) + '" y2="' + y + '" stroke="#D7E3EE" stroke-width="1"/>';
+    y += groupGap * 0.55;
   });
   const viewH = y + 30;
 
@@ -964,7 +966,9 @@ function buildTRChartSVG(){
     bars += '<rect x="' + chartX + '" y="' + y + '" width="' + barMaxW + '" height="' + barH + '" fill="#EEF3F8" rx="3"/>';
     bars += '<rect x="' + chartX + '" y="' + y + '" width="' + w + '" height="' + barH + '" fill="' + color + '" rx="3"/>';
     bars += '<text x="' + (chartX + barMaxW + 8) + '" y="' + (y + barH - 5) + '" font-size="10.5" font-weight="700" fill="#16232E">' + Math.round(r.pct*100) + '%</text>';
-    y += barH + rowGap;
+    y += barH + (rowGap * 0.4);
+    bars += '<line x1="0" y1="' + y + '" x2="' + (chartX + barMaxW + 60) + '" y2="' + y + '" stroke="#D7E3EE" stroke-width="1"/>';
+    y += rowGap * 0.6;
   });
   const viewH = y + 30;
 
