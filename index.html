@@ -285,6 +285,10 @@
   }
   .status-chip:hover{ border-color: var(--kt); color: var(--kt-darker); }
   .status-chip.active{ background: var(--kt-darker); color:#fff; border-color:var(--kt-darker); }
+  .pct-range:disabled, .pct-number:disabled, .status-chip:disabled, .comment-input:disabled{
+    opacity: .55; cursor: not-allowed;
+  }
+  .status-chip:disabled:hover{ border-color: var(--line); color: var(--muted); }
 
   .comment-input{
     width:100%;
@@ -326,6 +330,28 @@
     border-radius: 8px;
     padding: 8px 12px;
     margin-bottom: 14px;
+  }
+  .lock-note{
+    font-size: 12.5px;
+    color: #7a4a00;
+    background: #fff3e0;
+    border: 1px solid #f0b84f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-weight:600;
+  }
+  .admin-code-panel{
+    background: #f2f8fd;
+    border: 1px dashed var(--kt);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 12.8px;
+  }
+  .admin-code-panel b{ color: var(--kt-darker); }
+  .admin-code-panel code{
+    background: #fff; border:1px solid var(--line); padding:2px 7px; border-radius:5px;
   }
 
   .history-toggle{
@@ -387,8 +413,9 @@
   </div>
   <div class="name-box">
     <label>Ваше ФИО:</label>
-    <input id="myName" type="text" placeholder="Иванов И.И.">
+    <input id="myName" type="text" placeholder="Маматов А.Ж">
   </div>
+  <button class="admin-btn" id="editAccessBtn">🔒 Код для заполнения</button>
   <button class="admin-btn" id="adminBtn">Режим администратора</button>
 </header>
 
@@ -425,6 +452,8 @@ let activeTab = 'overview';
 let reportData = {}; // { districtIdx: { itemNum: {status, comment, by, at, history:[{status,comment,by,at,ts}]} } }
 let myName = '';
 let isAdmin = false;
+let editCode = 'report2026'; // код доступа для заполнения отчёта (можно сменить в режиме администратора)
+let editUnlocked = false;
 const saveTimers = {};
 const openHistory = {}; // { "dIdx-num": true } which history panels are expanded
 
@@ -435,6 +464,13 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwy8xSD1kIc8nLRNVFpJRHV
 
 function apiConfigured(){
   return API_URL && API_URL.indexOf('ВСТАВЬТЕ_ССЫЛКУ') === -1 && API_URL.indexOf('http') === 0;
+}
+
+async function apiGet(key){
+  const res = await fetch(API_URL + '?action=get&key=' + encodeURIComponent(key));
+  if(!res.ok) throw new Error('get failed: ' + res.status);
+  const data = await res.json();
+  return data.value;
 }
 
 async function apiBulkGet(prefix){
@@ -455,12 +491,14 @@ async function apiSet(key, value){
 }
 
 function keyFor(idx){ return 'trplan2026:district:' + idx; }
+function canEdit(){ return isAdmin || editUnlocked; }
 
 document.getElementById('adminBtn').addEventListener('click', ()=>{
   if(isAdmin){
     isAdmin = false;
     if(activeTab === 'journal') activeTab = 'overview';
     updateAdminBtn();
+    updateEditAccessBtn();
     renderTabs();
     renderPanel();
     return;
@@ -470,6 +508,7 @@ document.getElementById('adminBtn').addEventListener('click', ()=>{
   if(code.trim() === ADMIN_CODE){
     isAdmin = true;
     updateAdminBtn();
+    updateEditAccessBtn();
     renderTabs();
     renderPanel();
   }else{
@@ -481,6 +520,33 @@ function updateAdminBtn(){
   const btn = document.getElementById('adminBtn');
   btn.textContent = isAdmin ? 'Администратор: вкл' : 'Режим администратора';
   btn.classList.toggle('on', isAdmin);
+}
+
+document.getElementById('editAccessBtn').addEventListener('click', ()=>{
+  if(editUnlocked){
+    editUnlocked = false;
+    try{ localStorage.removeItem('trplan2026:mycode'); }catch(e){}
+    updateEditAccessBtn();
+    renderPanel();
+    return;
+  }
+  const code = prompt('Введите код доступа для заполнения отчёта (уточните у администратора):');
+  if(code === null) return;
+  if(code.trim() === editCode){
+    editUnlocked = true;
+    try{ localStorage.setItem('trplan2026:mycode', code.trim()); }catch(e){}
+    updateEditAccessBtn();
+    renderPanel();
+  }else{
+    alert('Неверный код доступа.');
+  }
+});
+
+function updateEditAccessBtn(){
+  const btn = document.getElementById('editAccessBtn');
+  const unlocked = canEdit();
+  btn.textContent = unlocked ? '🔓 Заполнение разблокировано' : '🔒 Код для заполнения';
+  btn.classList.toggle('on', unlocked);
 }
 
 async function loadAll(){
@@ -498,6 +564,16 @@ async function loadAll(){
 
   if(apiConfigured()){
     try{
+      const serverCode = await apiGet('trplan2026:editcode');
+      if(serverCode){ editCode = serverCode; }
+    }catch(e){ console.warn('не удалось получить код доступа, используется значение по умолчанию'); }
+
+    try{
+      const myCode = localStorage.getItem('trplan2026:mycode');
+      if(myCode && myCode === editCode){ editUnlocked = true; }
+    }catch(e){}
+
+    try{
       const bulk = await apiBulkGet('trplan2026:district:');
       DISTRICTS.forEach((d, i)=>{
         const raw = bulk[keyFor(i)];
@@ -509,6 +585,7 @@ async function loadAll(){
     }
   }
 
+  updateEditAccessBtn();
   renderTabs();
   renderPanel();
   renderSummary();
@@ -608,6 +685,17 @@ function renderTabs(){
   });
 }
 
+function adminEditCodePanel(){
+  return '<div class="admin-code-panel">' +
+    '<b>Код доступа для заполнения отчёта</b>' +
+    '<p>Текущий код: <code>' + escapeHtml(editCode) + '</code> — сообщите его тем, кому разрешено вносить данные.</p>' +
+    '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
+      '<input type="text" id="newEditCodeInput" placeholder="Новый код доступа" style="flex:1; min-width:180px; padding:7px 10px; border:1px solid var(--line); border-radius:7px; font-size:12.8px;">' +
+      '<button type="button" id="saveEditCodeBtn" class="status-chip active" style="padding:7px 16px;">Сохранить новый код</button>' +
+    '</div>' +
+  '</div>';
+}
+
 function shortName(name){
   return name.replace(' ЦТО МС','').replace('ЦТО МС','').trim();
 }
@@ -640,6 +728,8 @@ function renderPanel(){
       '<h2>Общий прогресс по районам</h2>' +
       '<p class="sub">Актюбинский ДЭСД · план текущего ремонта на 2026 год · нажмите на карточку района, чтобы открыть отчёт</p>' +
       '<div class="shared-note">Данные отчёта хранятся в общей Google Таблице — все, кто пользуется этим сайтом, видят и обновляют один и тот же отчёт.</div>' +
+      (!canEdit() ? '<div class="lock-note">🔒 Заполнение отчёта заблокировано. Чтобы вносить данные, нажмите «Код для заполнения» вверху и введите код, полученный от администратора.</div>' : '') +
+      (isAdmin ? adminEditCodePanel() : '') +
       '<div class="ov-grid">' + cards + '</div>';
     panel.querySelectorAll('.ov-card').forEach(card=>{
       card.addEventListener('click', ()=>{
@@ -648,12 +738,32 @@ function renderPanel(){
         renderPanel();
       });
     });
+
+    if(isAdmin){
+      const saveCodeBtn = panel.querySelector('#saveEditCodeBtn');
+      if(saveCodeBtn){
+        saveCodeBtn.addEventListener('click', async ()=>{
+          const input = panel.querySelector('#newEditCodeInput');
+          const val = (input.value || '').trim();
+          if(!val){ alert('Введите новый код.'); return; }
+          try{
+            await apiSet('trplan2026:editcode', val);
+            editCode = val;
+            alert('Код для заполнения обновлён. У всех, кто вводил старый код, доступ на редактирование теперь потребует ввести новый код.');
+          }catch(e){
+            alert('Не удалось сохранить новый код. Проверьте интернет-соединение.');
+          }
+        });
+      }
+    }
     return;
   }
 
   const dIdx = Number(activeTab);
   const d = DISTRICTS[dIdx];
   const s = districtStats(dIdx);
+  const locked = !canEdit();
+  const dis = locked ? 'disabled' : '';
 
   let rows = '';
   d.items.forEach(it=>{
@@ -667,16 +777,16 @@ function renderPanel(){
         '<div class="status-row">' +
           '<div class="percent-control">' +
             '<span class="percent-swatch" id="swatch-' + dIdx + '-' + it.num + '" style="background:' + swatchColor(st.status) + '"></span>' +
-            '<input type="range" min="0" max="100" step="1" value="' + Math.round((Number(st.status)||0)*100) + '" data-district="' + dIdx + '" data-num="' + it.num + '" class="pct-range">' +
-            '<input type="number" min="0" max="100" step="1" value="' + Math.round((Number(st.status)||0)*100) + '" data-district="' + dIdx + '" data-num="' + it.num + '" class="pct-number">' +
+            '<input type="range" min="0" max="100" step="1" value="' + Math.round((Number(st.status)||0)*100) + '" data-district="' + dIdx + '" data-num="' + it.num + '" class="pct-range" ' + dis + '>' +
+            '<input type="number" min="0" max="100" step="1" value="' + Math.round((Number(st.status)||0)*100) + '" data-district="' + dIdx + '" data-num="' + it.num + '" class="pct-number" ' + dis + '>' +
             '<span class="pct-sign">%</span>' +
           '</div>' +
-          quickChip(dIdx, it.num, 0, '0') +
-          quickChip(dIdx, it.num, 20, '20') +
-          quickChip(dIdx, it.num, 50, '50') +
-          quickChip(dIdx, it.num, 100, '100') +
+          quickChip(dIdx, it.num, 0, '0', locked) +
+          quickChip(dIdx, it.num, 20, '20', locked) +
+          quickChip(dIdx, it.num, 50, '50', locked) +
+          quickChip(dIdx, it.num, 100, '100', locked) +
         '</div>' +
-        '<textarea class="comment-input" data-district="' + dIdx + '" data-num="' + it.num + '" placeholder="Комментарий к выполнению...">' + escapeHtml(st.comment||'') + '</textarea>' +
+        '<textarea class="comment-input" data-district="' + dIdx + '" data-num="' + it.num + '" placeholder="Комментарий к выполнению..." ' + dis + '>' + escapeHtml(st.comment||'') + '</textarea>' +
         '<div class="fill-meta" id="meta-' + dIdx + '-' + it.num + '">' + fillMetaText(st) + '</div>' +
         (isAdmin ? adminHistoryBlock(dIdx, it.num, st) : '') +
       '</div>' +
@@ -686,6 +796,7 @@ function renderPanel(){
   panel.innerHTML =
     '<h2>' + escapeHtml(d.district) + '</h2>' +
     '<p class="sub">' + d.items.length + ' объект(ов) · выполнено ' + s.sum.toFixed(1) + ' (' + Math.round(s.pct*100) + '%)</p>' +
+    (locked ? '<div class="lock-note">🔒 Заполнение заблокировано. Нажмите «Код для заполнения» вверху страницы, чтобы вводить данные.</div>' : '') +
     rows;
 
   function applyPercent(dI, num, pctValue){
@@ -824,8 +935,8 @@ function fillMetaText(st){
   return 'Обновил: ' + escapeHtml(st.by||'—') + (st.at ? (' · ' + escapeHtml(st.at)) : '');
 }
 
-function quickChip(dIdx, num, pctVal, label){
-  return '<button type="button" class="status-chip" data-district="' + dIdx + '" data-num="' + num + '" data-v="' + pctVal + '">' + label + '</button>';
+function quickChip(dIdx, num, pctVal, label, locked){
+  return '<button type="button" class="status-chip" data-district="' + dIdx + '" data-num="' + num + '" data-v="' + pctVal + '" ' + (locked ? 'disabled' : '') + '>' + label + '</button>';
 }
 
 function swatchColor(status){
