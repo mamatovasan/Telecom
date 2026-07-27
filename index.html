@@ -1246,7 +1246,7 @@ function pprOverallStats(month){
 function renderPPRSummary(){
   const s = pprOverallStats(pprMonth);
   document.getElementById('summaryPill').innerHTML =
-    'Осмотр: <b>' + Math.round(s.pctOsmotr*100) + '%</b> (' + s.factOsmotr + ' из ' + s.yearPlanOsmotr + ' год.план) &nbsp;·&nbsp; ТО: <b>' + Math.round(s.pctTo*100) + '%</b> (' + s.factTo + ' из ' + s.yearPlanTo + ' год.план)';
+    'Осмотр: <b>' + s.yearPlanOsmotr + '/' + s.factOsmotr + '</b> — <b>' + Math.round(s.pctOsmotr*100) + '%</b> &nbsp;·&nbsp; ТО: <b>' + s.yearPlanTo + '/' + s.factTo + '</b> — <b>' + Math.round(s.pctTo*100) + '%</b>';
 }
 
 function renderPPRTabs(){
@@ -1294,7 +1294,7 @@ async function renderPPRPanel(){
       const avgPct = (s.pctOsmotr + s.pctTo) / 2;
       cards += '<div class="ov-card" data-ppr-goto="' + i + '">' +
         '<div class="name">' + escapeHtml(d.district) + '</div>' +
-        '<div class="count">Осмотр: ' + s.factOsmotr + '/' + s.yearPlanOsmotr + ' (год) · ТО: ' + s.factTo + '/' + s.yearPlanTo + ' (год)</div>' +
+        '<div class="count">Осмотр: ' + s.yearPlanOsmotr + '/' + s.factOsmotr + ' — ' + Math.round(s.pctOsmotr*100) + '% · ТО: ' + s.yearPlanTo + '/' + s.factTo + ' — ' + Math.round(s.pctTo*100) + '%</div>' +
         '<div class="bar-track"><div class="bar-fill" style="width:' + (avgPct*100) + '%"></div></div>' +
         '<div class="pct">' + Math.round(avgPct*100) + '%</div>' +
       '</div>';
@@ -1363,7 +1363,7 @@ async function renderPPRPanel(){
   const s = pprDistrictStats(dIdx, pprMonth);
   panel.innerHTML =
     '<h2>' + escapeHtml(d.district) + ' — ' + PPR_MONTH_NAMES[pprMonth] + ' 2026</h2>' +
-    '<p class="sub">Осмотр: ' + s.factOsmotr + ' из ' + s.yearPlanOsmotr + ' год.план (' + Math.round(s.pctOsmotr*100) + '%) · ТО: ' + s.factTo + ' из ' + s.yearPlanTo + ' год.план (' + Math.round(s.pctTo*100) + '%)</p>' +
+    '<p class="sub">Осмотр ' + s.yearPlanOsmotr + '/' + s.factOsmotr + ' — <b>' + Math.round(s.pctOsmotr*100) + '%</b> · ТО ' + s.yearPlanTo + '/' + s.factTo + ' — <b>' + Math.round(s.pctTo*100) + '%</b></p>' +
     (locked ? '<div class="lock-note">🔒 Заполнение заблокировано. Нажмите «Код для заполнения» вверху страницы.</div>' : '') +
     rows;
 
@@ -1446,9 +1446,36 @@ function renderPPRJournal(panel){
     '</div>';
 }
 
+function xlsxThinBorder(){
+  return {
+    top:{style:'thin', color:{rgb:'B9C7D2'}},
+    bottom:{style:'thin', color:{rgb:'B9C7D2'}},
+    left:{style:'thin', color:{rgb:'B9C7D2'}},
+    right:{style:'thin', color:{rgb:'B9C7D2'}}
+  };
+}
+
+function styleSheetGrid(ws, headerRows, totalRows, totalCols){
+  const range = { s:{r:0,c:0}, e:{r:totalRows-1,c:totalCols-1} };
+  for(let R=range.s.r; R<=range.e.r; R++){
+    for(let C=range.s.c; C<=range.e.c; C++){
+      const ref = XLSX.utils.encode_cell({r:R,c:C});
+      if(!ws[ref]) ws[ref] = { t:'s', v:'' };
+      const isHeader = R < headerRows;
+      ws[ref].s = {
+        border: xlsxThinBorder(),
+        alignment: { vertical:'center', wrapText: true, horizontal: (C===0 ? 'left':'center') },
+        font: isHeader ? { bold:true, color:{rgb:'FFFFFF'} } : { color:{rgb:'16232E'} },
+        fill: isHeader ? { patternType:'solid', fgColor:{rgb:'024D78'} } : undefined
+      };
+    }
+  }
+}
+
 async function exportPPRToExcel(){
   await ensurePPRMonthLoaded(pprMonth);
   const TYPE_ORDER = ["РШ","ОРШ","РК","ОРК","КЯ","ПСУ","Опоры","МАД"];
+  const monthLabel = PPR_MONTH_NAMES[pprMonth];
 
   // ---- Отчёт 1: Свод по сети ----
   const aoa1 = [];
@@ -1477,43 +1504,50 @@ async function exportPPRToExcel(){
 
   const ws1 = XLSX.utils.aoa_to_sheet(aoa1);
   ws1['!cols'] = [{wch:16},{wch:14},{wch:9},{wch:9},{wch:8},{wch:9},{wch:9},{wch:8}];
+  ws1['!merges'] = [
+    { s:{r:0,c:2}, e:{r:0,c:4} },
+    { s:{r:0,c:5}, e:{r:0,c:7} }
+  ];
   ['E','H'].forEach(col=>{
     for(let r=3;r<=aoa1.length;r++){
       const ref = col + r;
       if(ws1[ref] && typeof ws1[ref].v === 'number') ws1[ref].z = '0%';
     }
   });
+  styleSheetGrid(ws1, 2, aoa1.length, 8);
 
   // ---- Отчёт 2: По подразделениям ----
   const aoa2 = [];
-  aoa2.push(['Подразделение','Общее кол-во объектов ЛС, шт.','Норматив/план на месяц (Осмотр)','Выполнено осмотров','% выполнения осмотра','План ТО на месяц','Выполнено ТО','% выполнения ТО']);
+  aoa2.push(['Подразделение','Общее кол-во объектов ЛС, шт.','Норматив/план на месяц (Осмотр)','Выполнено осмотров','% выполнения осмотра','План ТО на месяц','Выполнено ТО','% выполнения ТО','Утв. план на ' + monthLabel + ' (Осмотр)','Утв. план на ' + monthLabel + ' (ТО)']);
   PPR_DISTRICTS.forEach((d,i)=>{
     const s = pprDistrictStats(i, pprMonth);
     const totalCount = d.objectTypes.reduce((a,ot)=> a + (Number(ot.totalCount)||0), 0);
-    aoa2.push([d.district, totalCount, s.planOsmotr, s.factOsmotr, s.planOsmotr? s.factOsmotr/s.planOsmotr:0, s.planTo, s.factTo, s.planTo? s.factTo/s.planTo:0]);
+    aoa2.push([d.district, totalCount, s.planOsmotr, s.factOsmotr, s.planOsmotr? s.factOsmotr/s.planOsmotr:0, s.planTo, s.factTo, s.planTo? s.factTo/s.planTo:0, s.planOsmotr, s.planTo]);
   });
-  aoa2.push([]);
-  aoa2.push(['Всего по типам объектов','','','','','','','']);
+  const districtRowsEnd = aoa2.length;
+  aoa2.push(['','','','','','','','','','']);
+  aoa2.push(['Всего по типам объектов','','','','','','','','','']);
   TYPE_ORDER.forEach(code=>{
     const t = totalsByType[code];
-    aoa2.push([code, t.count, t.planOsm, t.factOsm, t.planOsm? t.factOsm/t.planOsm:0, t.planTo, t.factTo, t.planTo? t.factTo/t.planTo:0]);
+    aoa2.push([code, t.count, t.planOsm, t.factOsm, t.planOsm? t.factOsm/t.planOsm:0, t.planTo, t.factTo, t.planTo? t.factTo/t.planTo:0, '', '']);
   });
-  aoa2.push([]);
-  aoa2.push(['Отчёт за ' + PPR_MONTH_NAMES[pprMonth].toLowerCase() + ' месяц 2026 года · выгружено ' + new Date().toLocaleString('ru-RU')]);
+  aoa2.push(['','','','','','','','','','']);
+  aoa2.push(['Отчёт за ' + monthLabel.toLowerCase() + ' месяц 2026 года · выгружено ' + new Date().toLocaleString('ru-RU'),'','','','','','','','','']);
 
   const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
-  ws2['!cols'] = [{wch:22},{wch:16},{wch:14},{wch:12},{wch:10},{wch:12},{wch:12},{wch:10}];
+  ws2['!cols'] = [{wch:22},{wch:16},{wch:14},{wch:12},{wch:10},{wch:12},{wch:12},{wch:10},{wch:16},{wch:16}];
   ['E','H'].forEach(col=>{
-    for(let r=2;r<=PPR_DISTRICTS.length+1;r++){
+    for(let r=2;r<=districtRowsEnd;r++){
       const ref = col + r;
       if(ws2[ref] && typeof ws2[ref].v === 'number') ws2[ref].z = '0%';
     }
   });
+  styleSheetGrid(ws2, 1, aoa2.length, 10);
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws1, 'Свод по сети');
   XLSX.utils.book_append_sheet(wb, ws2, 'По подразделениям');
-  XLSX.writeFile(wb, 'ППР_Отчет_' + PPR_MONTH_NAMES[pprMonth] + '_2026.xlsx');
+  XLSX.writeFile(wb, 'ППР_Отчет_' + monthLabel + '_2026.xlsx', { cellStyles: true });
 }
 
 // ---- Импорт факта из выгрузки программного комплекса ----
