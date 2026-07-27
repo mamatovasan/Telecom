@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Отчёт по текущему ремонту 2026 — Актюбинский ДЭСД</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
   :root{
     --bg: #e7f2fb;
@@ -373,6 +374,22 @@
     margin-bottom: 14px;
     font-weight:600;
   }
+  .ppr-chart-block{
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    background: #fbfeff;
+  }
+  .ppr-chart-head{
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:8px; margin-bottom: 10px;
+  }
+  .ppr-chart-head h3{
+    margin:0; font-size:14.5px; color: var(--kt-darker);
+  }
+  #pprChartWrap{ overflow-x:auto; }
+  #pprChartWrap svg{ display:block; min-width: 480px; }
   .admin-code-panel{
     background: #f2f8fd;
     border: 1px dashed var(--kt);
@@ -514,6 +531,10 @@
   <button class="export-btn" id="exportBtn">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
     Выгрузить отчёт (Excel)
+  </button>
+  <button class="export-btn" id="pprPptxBtn" style="display:none; background:#7A4FC9;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+    Экспорт в PowerPoint
   </button>
 </div>
 
@@ -787,6 +808,7 @@ document.querySelectorAll('.mode-btn').forEach(btn=>{
     document.querySelectorAll('.mode-btn').forEach(b=> b.classList.toggle('active', b === btn));
     document.getElementById('pprMonthPicker').style.display = (appMode === 'ppr') ? 'flex' : 'none';
     document.getElementById('pprImportBtn').style.display = (appMode === 'ppr') ? 'inline-flex' : 'none';
+    document.getElementById('pprPptxBtn').style.display = (appMode === 'ppr') ? 'inline-flex' : 'none';
     if(appMode === 'ppr'){
       pprActiveTab = 'overview';
       ensurePPRDataLoaded().then(()=>{ renderTabs(); renderPanel(); renderSummary(); });
@@ -866,6 +888,99 @@ function shortName(name){
 
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// Цвет полосы диаграммы по проценту выполнения
+function chartBarColor(fraction){
+  const pct = (fraction||0) * 100;
+  if(pct >= 80) return '#2f9e5f';
+  if(pct >= 50) return '#e0ac16';
+  return '#e0522b';
+}
+
+// Строит SVG-диаграмму (горизонтальные полосы) по всем районам за выбранный период:
+// для каждого района — отдельная полоса Осмотр и отдельная полоса ТО.
+function buildPPRChartSVG(months){
+  const rows = PPR_DISTRICTS.map((d,i)=>{
+    const s = pprDistrictStats(i, months);
+    return { name: d.district, pctO: s.pctOsmotr, pctT: s.pctTo };
+  });
+  const barH = 16, rowGap = 6, groupGap = 14;
+  const chartX = 168, barMaxW = 430, viewW = 720;
+  const topPad = 10;
+  let y = topPad;
+  let bars = '';
+  rows.forEach(r=>{
+    const oW = Math.max(2, Math.min(1, r.pctO) * barMaxW);
+    const tW = Math.max(2, Math.min(1, r.pctT) * barMaxW);
+    const oColor = chartBarColor(r.pctO);
+    const tColor = chartBarColor(r.pctT);
+
+    bars += '<text x="0" y="' + (y + barH - 4) + '" font-size="11" fill="#16232E">' + escapeHtml(r.name) + '</text>';
+    bars += '<rect x="' + chartX + '" y="' + y + '" width="' + barMaxW + '" height="' + barH + '" fill="#EEF3F8" rx="3"/>';
+    bars += '<rect x="' + chartX + '" y="' + y + '" width="' + oW + '" height="' + barH + '" fill="' + oColor + '" rx="3"/>';
+    bars += '<text x="' + (chartX + barMaxW + 8) + '" y="' + (y + barH - 4) + '" font-size="10.5" font-weight="700" fill="#16232E">О ' + Math.round(r.pctO*100) + '%</text>';
+    y += barH + rowGap;
+
+    bars += '<rect x="' + chartX + '" y="' + y + '" width="' + barMaxW + '" height="' + barH + '" fill="#EEF3F8" rx="3"/>';
+    bars += '<rect x="' + chartX + '" y="' + y + '" width="' + tW + '" height="' + barH + '" fill="' + tColor + '" rx="3"/>';
+    bars += '<text x="' + (chartX + barMaxW + 8) + '" y="' + (y + barH - 4) + '" font-size="10.5" font-weight="700" fill="#16232E">ТО ' + Math.round(r.pctT*100) + '%</text>';
+    y += barH + groupGap;
+  });
+  const viewH = y + 30;
+
+  let legend = '<g transform="translate(' + chartX + ',' + (viewH - 22) + ')">' +
+    '<rect x="0" y="0" width="12" height="12" fill="#2f9e5f" rx="2"/><text x="16" y="10" font-size="10.5" fill="#16232E">80%+</text>' +
+    '<rect x="70" y="0" width="12" height="12" fill="#e0ac16" rx="2"/><text x="86" y="10" font-size="10.5" fill="#16232E">50-79%</text>' +
+    '<rect x="150" y="0" width="12" height="12" fill="#e0522b" rx="2"/><text x="166" y="10" font-size="10.5" fill="#16232E">&lt;50%</text>' +
+    '</g>';
+
+  return '<svg viewBox="0 0 ' + viewW + ' ' + viewH + '" width="100%" height="auto" ' +
+    'xmlns="http://www.w3.org/2000/svg" style="background:#fff; font-family:Segoe UI, Arial, sans-serif;">' +
+    '<rect x="0" y="0" width="' + viewW + '" height="' + viewH + '" fill="#FFFFFF"/>' +
+    bars + legend +
+    '</svg>';
+}
+
+// Конвертирует SVG-элемент в PNG и запускает скачивание (надёжный способ без внешних библиотек).
+function downloadSvgAsPng(svgEl, filename){
+  const svgClone = svgEl.cloneNode(true);
+  const vb = svgEl.viewBox && svgEl.viewBox.baseVal;
+  const width = (vb && vb.width) ? vb.width : 720;
+  const height = (vb && vb.height) ? vb.height : 400;
+  const scale = 2; // для более чёткой картинки
+
+  const svgData = new XMLSerializer().serializeToString(svgClone);
+  const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+
+  const img = new Image();
+  img.onload = function(){
+    const canvas = document.createElement('canvas');
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(scale, scale);
+    ctx.drawImage(img, 0, 0, width, height);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(function(blob){
+      const dlUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = dlUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(()=> URL.revokeObjectURL(dlUrl), 2000);
+    }, 'image/png');
+  };
+  img.onerror = function(){
+    alert('Не удалось создать изображение диаграммы. Попробуйте ещё раз.');
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
 }
 
 function renderTRPanel(){
@@ -1338,7 +1453,23 @@ async function renderPPRPanel(){
       '<div class="shared-note">Данные ППР хранятся в той же общей Google Таблице, отдельно от данных ТР.</div>' +
       (!canEdit() ? '<div class="lock-note">🔒 Заполнение заблокировано. Нажмите «Код для заполнения» вверху, чтобы вносить данные.</div>' : '') +
       (isAdmin ? '<button type="button" id="pprResetAllBtn" class="admin-btn" style="margin-bottom:14px; background:#fbe1de; color:#a32f1f; border-color:#a32f1f;">🗑 Очистить факты ВСЕХ районов за выбранный период</button>' : '') +
+      '<div class="ppr-chart-block">' +
+        '<div class="ppr-chart-head">' +
+          '<h3>Диаграмма по районам — ' + pprPeriodLabel() + '</h3>' +
+          '<button type="button" id="pprChartDownloadBtn" class="export-btn" style="padding:8px 14px; font-size:12.5px;">📷 Скачать диаграмму (PNG)</button>' +
+        '</div>' +
+        '<div id="pprChartWrap">' + buildPPRChartSVG(months) + '</div>' +
+      '</div>' +
       '<div class="ov-grid">' + cards + '</div>';
+
+    const chartDownloadBtn = panel.querySelector('#pprChartDownloadBtn');
+    if(chartDownloadBtn){
+      chartDownloadBtn.addEventListener('click', ()=>{
+        const svgEl = panel.querySelector('#pprChartWrap svg');
+        if(svgEl) downloadSvgAsPng(svgEl, 'ППР_диаграмма_' + pprPeriodLabel().replace(/[^\wа-яА-Я0-9]+/g,'_') + '.png');
+      });
+    }
+
     if(isAdmin){
       const resetAllBtn = panel.querySelector('#pprResetAllBtn');
       if(resetAllBtn){
@@ -1872,6 +2003,103 @@ async function handlePPRImportFile(e){
     alert('Не удалось прочитать файл. Убедитесь, что это тот же формат выгрузки (лист ReportData3), что и раньше.');
   } finally {
     e.target.value = '';
+  }
+}
+
+document.getElementById('pprPptxBtn').addEventListener('click', exportPPRToPptx);
+
+async function exportPPRToPptx(){
+  if(typeof PptxGenJS === 'undefined'){
+    alert('Не удалось загрузить библиотеку для PowerPoint. Проверьте подключение к интернету и попробуйте ещё раз.');
+    return;
+  }
+  await ensurePPRDataLoaded();
+  const months = pprMonthsInRange();
+  const label = pprPeriodLabel();
+
+  const pres = new PptxGenJS();
+  pres.defineLayout({ name: 'CUSTOM_16x9', width: 10, height: 5.63 });
+  pres.layout = 'CUSTOM_16x9';
+
+  const headerImg = document.querySelector('header img');
+  const logoSrc = headerImg ? headerImg.src : null;
+
+  // ---- Слайд 1: титульный ----
+  const slide1 = pres.addSlide();
+  slide1.background = { color: 'E7F2FB' };
+  if(logoSrc){
+    slide1.addImage({ data: logoSrc, x: 0.4, y: 0.4, w: 1.4, h: 0.55 });
+  }
+  slide1.addText('Отчёт по ППР', { x: 0.4, y: 1.5, w: 9.2, h: 0.8, fontSize: 34, bold: true, color: '024D78', fontFace: 'Calibri' });
+  slide1.addText('Актюбинский ДЭСД · ЦТО МС', { x: 0.4, y: 2.3, w: 9.2, h: 0.4, fontSize: 16, color: '607284', fontFace: 'Calibri' });
+  slide1.addText('Период: ' + label, { x: 0.4, y: 2.7, w: 9.2, h: 0.4, fontSize: 16, color: '607284', fontFace: 'Calibri' });
+  slide1.addText('Сформировано: ' + new Date().toLocaleString('ru-RU'), { x: 0.4, y: 5.1, w: 9.2, h: 0.3, fontSize: 10, color: '9AA7B0', fontFace: 'Calibri' });
+
+  // ---- Слайд 2: диаграмма по районам ----
+  const catLabels = PPR_DISTRICTS.map(d => shortName(d.district));
+  const osmData = [], toData = [];
+  PPR_DISTRICTS.forEach((d,i)=>{
+    const s = pprDistrictStats(i, months);
+    osmData.push(Math.round(s.pctOsmotr*100));
+    toData.push(Math.round(s.pctTo*100));
+  });
+  const chartData = [
+    { name: 'Осмотр, %', labels: catLabels, values: osmData },
+    { name: 'ТО, %', labels: catLabels, values: toData }
+  ];
+
+  const slide2 = pres.addSlide();
+  slide2.addText('Выполнение по районам — ' + label, { x: 0.4, y: 0.2, w: 9.2, h: 0.5, fontSize: 20, bold: true, color: '024D78', fontFace: 'Calibri' });
+  slide2.addChart(pres.ChartType.bar, chartData, {
+    x: 0.3, y: 0.75, w: 9.4, h: 4.65,
+    barDir: 'bar',
+    catAxisLabelFontSize: 8,
+    valAxisMaxVal: 100,
+    showLegend: true,
+    legendPos: 'b',
+    showValue: true,
+    dataLabelFontSize: 7,
+    chartColors: ['1F77B4', '2F9E5F']
+  });
+
+  // ---- Слайд(ы) 3: таблица по районам ----
+  const slide3 = pres.addSlide();
+  slide3.addText('Данные по районам — ' + label, { x: 0.4, y: 0.2, w: 9.2, h: 0.5, fontSize: 20, bold: true, color: '024D78', fontFace: 'Calibri' });
+  const headerOpts = { bold: true, fill: '024D78', color: 'FFFFFF', fontSize: 9, valign: 'middle' };
+  const tableRows = [[
+    { text: 'Район', options: headerOpts },
+    { text: 'Осмотр план', options: headerOpts },
+    { text: 'Осмотр факт', options: headerOpts },
+    { text: '%', options: headerOpts },
+    { text: 'ТО план', options: headerOpts },
+    { text: 'ТО факт', options: headerOpts },
+    { text: '%', options: headerOpts }
+  ]];
+  PPR_DISTRICTS.forEach((d,i)=>{
+    const s = pprDistrictStats(i, months);
+    tableRows.push([
+      { text: d.district, options:{ fontSize:8.5 } },
+      { text: String(s.planOsmotr), options:{ fontSize:8.5, align:'center' } },
+      { text: String(s.factOsmotr), options:{ fontSize:8.5, align:'center' } },
+      { text: Math.round(s.pctOsmotr*100)+'%', options:{ fontSize:8.5, align:'center' } },
+      { text: String(s.planTo), options:{ fontSize:8.5, align:'center' } },
+      { text: String(s.factTo), options:{ fontSize:8.5, align:'center' } },
+      { text: Math.round(s.pctTo*100)+'%', options:{ fontSize:8.5, align:'center' } }
+    ]);
+  });
+  slide3.addTable(tableRows, {
+    x: 0.3, y: 0.75, w: 9.4,
+    autoPage: true,
+    border: { type: 'solid', color: 'B9C7D2', pt: 0.5 },
+    fontFace: 'Calibri'
+  });
+
+  const fileSafe = label.replace(/[^\wа-яА-Я0-9]+/g, '_');
+  try{
+    await pres.writeFile({ fileName: 'ППР_Презентация_' + fileSafe + '.pptx' });
+  }catch(e){
+    console.error(e);
+    alert('Не удалось создать презентацию. Попробуйте ещё раз.');
   }
 }
 
