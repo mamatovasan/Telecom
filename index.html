@@ -95,6 +95,38 @@
     gap: 12px;
     flex-wrap: wrap;
   }
+  .mode-switch{
+    max-width: 1180px;
+    margin: 16px auto 0 auto;
+    padding: 0 16px;
+    display:flex;
+    gap: 8px;
+  }
+  .mode-btn{
+    background: rgba(255,255,255,.55);
+    border: 1.5px solid var(--line);
+    color: var(--kt-darker);
+    font-weight:700;
+    font-size: 13px;
+    padding: 9px 18px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: all .12s ease;
+  }
+  .mode-btn.active{
+    background: var(--kt-darker);
+    color:#fff;
+    border-color: var(--kt-darker);
+  }
+  .mode-btn:hover:not(.active){ border-color: var(--kt); }
+  #pprMonthPicker select{
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    font-size: 12.8px;
+    font-weight:600;
+    color: var(--kt-darker);
+  }
   .summary-pill{
     background: var(--card);
     border-radius: 999px;
@@ -374,6 +406,48 @@
   }
   .history-entry b{ color: var(--kt-darker); }
 
+  .ppr-metric-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .ppr-metric{
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 10px 12px;
+    background: #fbfeff;
+  }
+  .ppr-metric-title{
+    font-weight:700;
+    font-size: 12.5px;
+    color: var(--kt-darker);
+    margin-bottom: 6px;
+  }
+  .ppr-metric-row{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    font-size: 12.5px;
+    margin-bottom: 5px;
+    gap: 8px;
+  }
+  .ppr-metric-row span{ color: var(--muted); }
+  .ppr-fact-input{
+    width: 80px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12.8px;
+    font-weight:700;
+    color: var(--kt-darker);
+    text-align:center;
+  }
+  .ppr-fact-input:disabled{ opacity:.55; cursor:not-allowed; }
+  @media (max-width: 640px){
+    .ppr-metric-grid{ grid-template-columns: 1fr; }
+  }
+
   .journal-toolbar{
     display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;
   }
@@ -419,8 +493,22 @@
   <button class="admin-btn" id="adminBtn">Режим администратора</button>
 </header>
 
+<div class="mode-switch" id="modeSwitch">
+  <button class="mode-btn active" data-mode="tr">Текущий ремонт</button>
+  <button class="mode-btn" data-mode="ppr">ППР</button>
+</div>
+
 <div class="toolbar">
   <div class="summary-pill" id="summaryPill">Загрузка данных…</div>
+  <div id="pprMonthPicker" style="display:none; align-items:center; gap:8px;">
+    <label style="font-size:12.5px; color:var(--muted); font-weight:600;">Месяц:</label>
+    <select id="pprMonthSelect"></select>
+  </div>
+  <button class="export-btn" id="pprImportBtn" style="display:none; background:var(--kt);">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M4 21h16"/></svg>
+    Импорт из выгрузки
+  </button>
+  <input type="file" id="pprImportFile" accept=".xlsx,.xlsm" style="display:none;">
   <button class="export-btn" id="exportBtn">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
     Выгрузить отчёт (Excel)
@@ -446,7 +534,16 @@
 
 <script>
 const DISTRICTS = [{"district": "ЛКЦ ЦТО МС", "items": [{"num": 1, "quarter": "1., 2., 3., 4.", "dates": "", "name": "Текущий ремонт  АТС-54 По ул. Военный городок. (кол.абонентов 47). Строительства на GPON.", "note": ""}, {"num": 2, "quarter": "", "dates": "", "name": "Текущий ремонт  АТС-51 По Район Сазда-3 Строительства на GPON.", "note": ""}, {"num": 3, "quarter": "", "dates": "", "name": "Текущий ремонт  АТС-51 По Район Сазда-4 Строительства на GPON.", "note": ""}, {"num": 4, "quarter": "", "dates": "", "name": "АТС-51 По Район Сазда-2 переключение  РШ5122 на АД54/0/4", "note": ""}, {"num": 5, "quarter": "", "dates": "", "name": "ТР по приведению ККС к техническим нормам зоне действия АТС-23 5 шт. \nПо 11 микрорайону д.36 ККС№1206,322,610,612,613.", "note": ""}, {"num": 6, "quarter": "", "dates": "", "name": "ТР по приведению ККС к техническим нормам зоне действия  АТС 21   5 шт . \nПо ул. Гарнизонная КК С№649,669,668,667,662.", "note": ""}, {"num": 7, "quarter": "", "dates": "", "name": "ТР по приведению ККС к техническим нормам зоне действия  АТС 54   5 шт.\nПо ул. Сатпаева д.15 ККС №1168,858,998,999,1145.", "note": ""}, {"num": 8, "quarter": "", "dates": "", "name": "«Текущий ремонт существующего подводного перехода магистральной сети через реку Илек» ОК-144 в ж/м Заречный.", "note": "Добавленный объект"}, {"num": 9, "quarter": "", "dates": "", "name": "«Текущий ремонт распределительной сети 41разъезд   г.Актобе» ОК48 в районе 41го разъезда г.Актобе.", "note": "Добавленный объект"}]}, {"district": "Алгинский ЛТЦ ЦТО МС", "items": [{"num": 8, "quarter": "2., 3., 4.", "dates": "июнь", "name": "ТР по выправке опор: Алга (13шт)  Тамды (7шт) , АТС 35 пос Бестамак (9шт)", "note": ""}, {"num": 9, "quarter": "", "dates": "июль", "name": "ТР (кабельные колодцы) ККС-6шт. АТС-41", "note": ""}, {"num": 10, "quarter": "", "dates": "октябрь", "name": "ТР Демонтаж медной сети по ул Есет-батыр дом 25,27. ул Байтурсынова дом 17,17а. ул 2 мкр дом 2( после переключения на оптику по программе \"Тазарту\"  )", "note": ""}]}, {"district": "Кобдинский ЛТЦ ЦТО МС", "items": [{"num": 11, "quarter": "2., 3., 4.", "dates": "Январь-июнь", "name": "ТР Демонтаж ОУ (40 шт) с. Кобда (переключеных на оптику по программе \"Тазарту\".)", "note": ""}, {"num": 12, "quarter": "", "dates": "май", "name": "ППР и инвентаризация ПСУ с.Кобда ( 5 ККС )", "note": ""}, {"num": 13, "quarter": "", "dates": "июлб-сентябрь", "name": "ТР по приведению аварийных опор к техническим нормам с. Кобда, с. Талдысай.", "note": ""}, {"num": 14, "quarter": "", "dates": "январь-декабрь", "name": "ТР по переключению с меди на оптику абонентов с. Кобда 762 абонент", "note": ""}, {"num": 15, "quarter": "", "dates": "январь-декабрь", "name": "ТР Демонтаж медной сети с. Кобда (после переключения на оптику по программе \"Тазарту\".)", "note": ""}]}, {"district": "Уилский ЛТУ Кобдинского ЛТЦ ЦТО МС", "items": [{"num": 16, "quarter": "2., 3., 4.", "dates": "июнь", "name": "План ТР (кабельные колодцы) ККС-10шт. замена люков АТС-21", "note": "перенос с 2025 года"}, {"num": 17, "quarter": "", "dates": "январь-декабрь", "name": "Переключение АТС на GPON, с.Уил  (120 абонентов)", "note": ""}, {"num": 18, "quarter": "", "dates": "август", "name": "Аварийные опоры Р/Ц Уил в количестве опора деревянная 8шт., ж/б пристава -14 шт.", "note": ""}]}, {"district": "Темирский ЛТЦ", "items": [{"num": 19, "quarter": "2., 3., 4.", "dates": "июнь", "name": "ТР по приведению ККС к техническим нормам в зоне действие п. Кенкияк АТС-26 (1 шт.)", "note": ""}, {"num": 20, "quarter": "", "dates": "июлб-сентябрь", "name": "ТР по приведению ККС к техническим нормам в зоне действие п. Шубаркудык АТС-22 Вынос мкр. Кызылжар (3 шт.).", "note": ""}, {"num": 21, "quarter": "", "dates": "июль", "name": "ТР по приведению аварийных опор к теническим нормам в зоне действие АТС-28 с. Копа  (8 шт.)", "note": ""}, {"num": 22, "quarter": "", "dates": "июль", "name": "ТР по приведению аварийных опор к теническим нормам в зоне действие АТС-25 с.Аксай (4 шт.)", "note": ""}, {"num": 23, "quarter": "", "dates": "июль", "name": "ТР по приведению аварийных опор к теническим нормам в зоне действие АТС-27 (12 шт.)", "note": ""}, {"num": 24, "quarter": "", "dates": "январь-декабрь", "name": "Переключение АТС на GPON, п.Шубаркудык ( 130 абонентов)", "note": ""}]}, {"district": "Байганинский ЛТУ Темирского ЛТЦ ЦТО МС", "items": [{"num": 25, "quarter": "2., 3., 4.", "dates": "май-июнь", "name": "Текущий ремонт кабельных колодцев в сооружений ГТС с.Карауылкелды ККС № 615, 7006, 7009, 607,608.", "note": ""}, {"num": 26, "quarter": "", "dates": "май-июнь", "name": "Текущий ремонт на участке РШ 2202 замена кабеля (емкостью 30 пар) по улице Бармак батыра", "note": ""}, {"num": 27, "quarter": "", "dates": "июнь", "name": "Текущий ремонт на участке РШ 2203 замена кабеля (емкостью 10 пар) по улице Жагалау", "note": ""}, {"num": 28, "quarter": "", "dates": "сентябрь-октябрь", "name": "Текущий ремонт перенос (АТС-22) участок с.Карауылкелды, переключение абонентов на GPON (250 абонентов)", "note": "перенос с 2025 года"}, {"num": 29, "quarter": "", "dates": "", "name": "Текущий ремонт по замене аварийных опор, ж/б пристав, выправка, крепление (подтягивание) опор на участке РШ-2201,2202,2203,2204 и СТС. Ж/Б приставы ПР 0,8 -20 шт., Деревянная опора до 6,5 метров-38 шт.", "note": ""}]}, {"district": "Мугалжарский ЛТЦ ЦТО МС", "items": [{"num": 30, "quarter": "2., 3., 4.", "dates": "июнь-июль", "name": "ТР по выправке опор: Кандагач (17 шт)  пос. Сагашили (3 шт) , пос. Аккемер (3 шт)", "note": ""}, {"num": 31, "quarter": "", "dates": "июль-август", "name": "ТР (кабельные колодцы) ККС-5шт. АТС-41", "note": ""}, {"num": 32, "quarter": "", "dates": "октябрь-декабрь", "name": "ТР Демонтаж медной сети по мкр Молодежный  №80,81,1Б.дом.( после переключения на оптику по программе \"Тазарту\"  )", "note": ""}]}, {"district": "Эмбенский ЛТУ Мугалжарского ЛТЦ ЦТО МС", "items": [{"num": 33, "quarter": "2., 3., 4.", "dates": "май-июнь", "name": "Текущий ремонт кабельных колодцев в сооружений ГТС г.Эмба ККС № 605,609,616,635,636", "note": ""}, {"num": 34, "quarter": "", "dates": "май-июнь", "name": "Текущий ремонт на участке РШ 2207 замена кабеля (емкостью 50,30,20 пар) приведение к тех. норме, уход свыше 1000 В, РС-3 по улице Толе би", "note": ""}, {"num": 35, "quarter": "", "dates": "июнь", "name": "Текущий ремонт уход от ОП свыше 1000 В  с абонентскими проводами ЛС г.Эмба, улица Валиханова", "note": ""}, {"num": 36, "quarter": "", "dates": "сентябрь-октябрь", "name": "Текущий ремонт перенос (АТС-52) участок г.Жем, переключение абонентов на GPON дом №55 (20 абонентов)", "note": ""}, {"num": 37, "quarter": "", "dates": "сентябрь-октябрь", "name": "Переключение АТС на GPON, г.Эмба  (50 абонентов) на участке дом №11, 17", "note": ""}, {"num": 38, "quarter": "", "dates": "сентябрь-октябрь", "name": "Текущий ремонт по замене аварийных опор, ж/б пристав, выправка, крепление (подтягивание) опор, демонтаж железобетонных опор на участке РШ-2207", "note": ""}]}, {"district": "Шалкарский ЛТЦ ЦТО МС", "items": [{"num": 39, "quarter": "3.", "dates": "июль", "name": "ТР замене аварийных опор, ж/б приставь и выправка опор. г.Шалкар. пристава ж/б (шт)-30.", "note": ""}, {"num": 40, "quarter": "", "dates": "август", "name": "ТР ККС г.Шалкар 5 шт.", "note": ""}, {"num": 41, "quarter": "", "dates": "сентябрь", "name": "ПТР Переключение АТС на GPON, с.Шалкар  (200 абонентов)", "note": ""}]}, {"district": "Иргизский ЛТУ Шалкарского ЛТЦ ЦТО МС", "items": [{"num": 42, "quarter": "2., 3., 4.", "dates": "июль", "name": "ПТР  ККС-10шт.", "note": ""}, {"num": 43, "quarter": "", "dates": "август", "name": "АВ опоры Р/Ц Иргиз  ж/б пристава в количестве -14 шт.", "note": ""}, {"num": 44, "quarter": "", "dates": "апрель-декабрь", "name": "ТР на ШР2105  строительство на GPON.", "note": ""}]}, {"district": "Айтекебийский ЛТУ Хромтауского ЛТЦ ЦТО МС", "items": [{"num": 45, "quarter": "2., 3.", "dates": "июнь", "name": "ТР замене аварийных опор, ж/б приставь и выправка опор.Айтекебийского ЛТУ", "note": ""}, {"num": 46, "quarter": "", "dates": "июль", "name": "ТР ККС с.т Жургенова - 5 шт.", "note": ""}]}, {"district": "Каргалинский ЛТЦ ЦТО МС", "items": [{"num": 47, "quarter": "2., 3., 4.", "dates": "май-июнь", "name": "ТР Инвентаризация ККС село Бадамша 5 шт.", "note": ""}, {"num": 48, "quarter": "", "dates": "август", "name": "ТР Выправка опор 25 шт.", "note": ""}]}, {"district": "Хромтауский ЛТЦ ЦТО МС", "items": [{"num": 49, "quarter": "2., 3., 4.", "dates": "январь-декабрь", "name": "ТР Демонтаж ОУ (452шт) г.Хромтау (переключеных на оптику по проекту \"Тазарту\")", "note": ""}, {"num": 50, "quarter": "", "dates": "июнь", "name": "ТР Замена аварийных ж/б пристав и выправка опор по г.Хромтау, п.Дон, п.Акжар", "note": ""}, {"num": 51, "quarter": "", "dates": "январь-декабрь", "name": "ТР Демонтаж медной сети  ШР- 2101,2111,2112,2113,2121,2123, пр. Победы д.8 (после переключения на GPON по проекту \"Тазарту\" - 25 домов)", "note": ""}]}, {"district": "Мартукский ЛТЦ ЦТО МС", "items": [{"num": 52, "quarter": "1.,2., 3., 4.", "dates": "март", "name": "ТР Демонтаж ОУ (45шт) с. Мартук (переключеных на оптику по программе \"Тазарту\".)", "note": ""}, {"num": 53, "quarter": "", "dates": "май", "name": "ТР по замене кабеля ТПП-50х2х0,4 с. Саржансай.", "note": ""}, {"num": 54, "quarter": "", "dates": "июль", "name": "ТР по приведению аварийных опор к техническим нормам с. Мартук, с. Родниковка, с. Сарыжар с. Байтурасай.", "note": ""}, {"num": 55, "quarter": "", "dates": "январь-декабрь", "name": "ТР по переключению с меди на оптику абонентов с. Мартук 1627 абонент", "note": ""}, {"num": 56, "quarter": "", "dates": "январь-декабрь", "name": "ТР Демонтаж медной сети с. Мартук (после переключения на оптику по программе \"Тазарту\".)", "note": ""}]}];
+const PPR_DISTRICTS = [{"district": "Актобе", "sheet": "Актобе", "objectTypes": [{"code": "РШ", "totalCount": 143, "osmotr": {"yearPlan": 30, "months": {"1": null, "2": null, "3": 15, "4": 15, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": null, "12": null}}, "to": {"yearPlan": 15, "months": {"1": null, "2": null, "3": null, "4": 3, "5": 2, "6": 2, "7": 2, "8": 2, "9": 2, "10": 2, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 10, "osmotr": {"yearPlan": 10, "months": {"1": null, "2": null, "3": null, "4": 1, "5": 2, "6": 2, "7": 1, "8": 2, "9": 2, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 10, "months": {"1": null, "2": null, "3": null, "4": 0, "5": 3, "6": 3, "7": 4, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "РК", "totalCount": 7833, "osmotr": {"yearPlan": 140, "months": {"1": 50, "2": 50, "3": 40, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 70, "months": {"1": 24, "2": 23, "3": 23, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 9427, "osmotr": {"yearPlan": 932, "months": {"1": 77, "2": 78, "3": 78, "4": 77, "5": 78, "6": 78, "7": 77, "8": 78, "9": 78, "10": 77, "11": 78, "12": 78}}, "to": {"yearPlan": 552, "months": {"1": 46, "2": 46, "3": 46, "4": 46, "5": 46, "6": 46, "7": 46, "8": 46, "9": 46, "10": 46, "11": 46, "12": 46}}}, {"code": "КЯ", "totalCount": 2138, "osmotr": {"yearPlan": 519, "months": {"1": 57, "2": 57, "3": 59, "4": 57, "5": 57, "6": 59, "7": 57, "8": 57, "9": 59, "10": 0, "11": null, "12": null}}, "to": {"yearPlan": 105, "months": {"1": null, "2": null, "3": null, "4": 15, "5": 15, "6": 15, "7": 15, "8": 15, "9": 15, "10": 15, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 6067, "osmotr": {"yearPlan": 1441, "months": {"1": null, "2": null, "3": null, "4": 207, "5": 207, "6": 207, "7": 205, "8": 205, "9": 205, "10": 205, "11": null, "12": null}}, "to": {"yearPlan": 86, "months": {"1": null, "2": null, "3": null, "4": 14, "5": 14, "6": 13, "7": 13, "8": 13, "9": 13, "10": 6, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 13400, "osmotr": {"yearPlan": 13187, "months": {"1": null, "2": null, "3": 200, "4": 4331, "5": 4329, "6": 4329, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 640, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": 40, "7": 150, "8": 150, "9": 100, "10": 100, "11": 100, "12": null}}}, {"code": "МАД", "totalCount": 54, "osmotr": {"yearPlan": 21, "months": {"1": null, "2": null, "3": null, "4": 4, "5": 3, "6": 3, "7": 3, "8": 3, "9": 3, "10": 2, "11": null, "12": null}}, "to": {"yearPlan": 8, "months": {"1": null, "2": null, "3": null, "4": 2, "5": 1, "6": 1, "7": 1, "8": 1, "9": 1, "10": 1, "11": null, "12": null}}}]}, {"district": "Айтекебийский УТ", "sheet": "Айтекеби", "objectTypes": [{"code": "РШ", "totalCount": 11, "osmotr": {"yearPlan": 1, "months": {"1": null, "2": null, "3": null, "4": null, "5": 1, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 1, "months": {"1": null, "2": null, "3": null, "4": null, "5": 1, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 33, "osmotr": {"yearPlan": 2, "months": {"1": 2, "2": 0, "3": 0, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 2, "months": {"1": 2, "2": 0, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 80, "osmotr": {"yearPlan": 26, "months": {"1": 8, "2": 9, "3": 9, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 26, "months": {"1": 0, "2": 0, "3": 0, "4": 4, "5": 5, "6": 6, "7": 4, "8": 5, "9": 6, "10": null, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 374, "osmotr": {"yearPlan": 28, "months": {"1": null, "2": null, "3": null, "4": 4, "5": 5, "6": 5, "7": 5, "8": 5, "9": 4, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 28, "months": {"1": null, "2": null, "3": null, "4": 4, "5": 5, "6": 5, "7": 5, "8": 5, "9": 4, "10": null, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 73, "osmotr": {"yearPlan": 5, "months": {"1": null, "2": null, "3": null, "4": null, "5": 5, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 5, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": 5, "7": 0, "8": 0, "9": 0, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 2802, "osmotr": {"yearPlan": 2802, "months": {"1": null, "2": null, "3": 0, "4": 934, "5": 934, "6": 934, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 280, "months": {"1": 0, "2": 0, "3": 0, "4": 40, "5": 40, "6": 40, "7": 40, "8": 40, "9": 40, "10": 40, "11": null, "12": null}}}, {"code": "МАД", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}]}, {"district": "Алгинский УТ", "sheet": "Алга", "objectTypes": [{"code": "РШ", "totalCount": 17, "osmotr": {"yearPlan": 5, "months": {"1": null, "2": null, "3": null, "4": null, "5": 2, "6": null, "7": 3, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 5, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 325, "osmotr": {"yearPlan": 107, "months": {"1": 22, "2": 22, "3": 23, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": 20, "11": 20, "12": null}}, "to": {"yearPlan": 107, "months": {"1": 22, "2": 22, "3": 23, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": 20, "11": 20, "12": null}}}, {"code": "ОРК", "totalCount": 70, "osmotr": {"yearPlan": 20, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": 7, "11": 7, "12": 6}}, "to": {"yearPlan": 20, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": 7, "11": 7, "12": 6}}}, {"code": "КЯ", "totalCount": 289, "osmotr": {"yearPlan": 105, "months": {"1": null, "2": null, "3": null, "4": 18, "5": 18, "6": 18, "7": 17, "8": 17, "9": 17, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 80, "months": {"1": null, "2": null, "3": null, "4": 13, "5": 13, "6": 13, "7": 13, "8": 14, "9": 14, "10": null, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 247, "osmotr": {"yearPlan": 61, "months": {"1": null, "2": null, "3": null, "4": 11, "5": 10, "6": 10, "7": 10, "8": 10, "9": 10, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 61, "months": {"1": 0, "2": 0, "3": 0, "4": null, "5": 12, "6": 13, "7": 12, "8": 12, "9": 12, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 1591, "osmotr": {"yearPlan": 1795, "months": {"1": null, "2": null, "3": 0, "4": 598, "5": 598, "6": 599, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 300, "months": {"1": null, "2": null, "3": null, "4": 100, "5": 100, "6": 100, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "МАД", "totalCount": 4, "osmotr": {"yearPlan": 1, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": null, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}]}, {"district": "Байганинский УТ", "sheet": "Байганин", "objectTypes": [{"code": "РШ", "totalCount": 4, "osmotr": {"yearPlan": 2, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": 2, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 2, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": 2, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 22, "osmotr": {"yearPlan": 8, "months": {"1": null, "2": 4, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 8, "months": {"1": null, "2": 4, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 24, "osmotr": {"yearPlan": 8, "months": {"1": null, "2": 4, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 8, "months": {"1": null, "2": 4, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 239, "osmotr": {"yearPlan": 80, "months": {"1": null, "2": null, "3": null, "4": 10, "5": 12, "6": 12, "7": 12, "8": 12, "9": 12, "10": 10, "11": null, "12": null}}, "to": {"yearPlan": 80, "months": {"1": null, "2": null, "3": null, "4": 10, "5": 12, "6": 12, "7": 12, "8": 12, "9": 12, "10": 10, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 57, "osmotr": {"yearPlan": 15, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": 5, "8": 5, "9": 5, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 15, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": 5, "8": 5, "9": 5, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 2136, "osmotr": {"yearPlan": 2136, "months": {"1": null, "2": null, "3": null, "4": 712, "5": 712, "6": 712, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 1068, "months": {"1": null, "2": null, "3": null, "4": 133, "5": 133, "6": 133, "7": 133, "8": 133, "9": 133, "10": 135, "11": 135, "12": null}}}, {"code": "МАД", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}]}, {"district": "Иргизский УТ", "sheet": "Иргиз", "objectTypes": [{"code": "РШ", "totalCount": 5, "osmotr": {"yearPlan": 2, "months": {"1": null, "2": null, "3": null, "4": 2, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 2, "months": {"1": null, "2": null, "3": null, "4": 2, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 8, "osmotr": {"yearPlan": 3, "months": {"1": null, "2": null, "3": 3, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 3, "months": {"1": null, "2": null, "3": 3, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 28, "osmotr": {"yearPlan": 8, "months": {"1": null, "2": 8, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 8, "months": {"1": null, "2": 8, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 155, "osmotr": {"yearPlan": 52, "months": {"1": null, "2": null, "3": null, "4": 10, "5": 10, "6": 10, "7": 8, "8": 7, "9": 7, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 46, "months": {"1": null, "2": null, "3": null, "4": 8, "5": 8, "6": 8, "7": 8, "8": 7, "9": 7, "10": null, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 54, "osmotr": {"yearPlan": 14, "months": {"1": null, "2": null, "3": null, "4": 2, "5": 2, "6": 2, "7": 3, "8": 3, "9": 2, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 14, "months": {"1": null, "2": null, "3": null, "4": 3, "5": 3, "6": 2, "7": 2, "8": 2, "9": 2, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 992, "osmotr": {"yearPlan": 965, "months": {"1": null, "2": null, "3": 0, "4": 322, "5": 322, "6": 321, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 280, "months": {"1": 0, "2": 0, "3": 0, "4": 40, "5": 40, "6": 40, "7": 40, "8": 40, "9": 40, "10": 40, "11": null, "12": null}}}, {"code": "МАД", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}]}, {"district": "Каргалинский УТ", "sheet": "Каргала", "objectTypes": [{"code": "РШ", "totalCount": 11, "osmotr": {"yearPlan": 3, "months": {"1": null, "2": null, "3": null, "4": null, "5": 3, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 3, "months": {"1": null, "2": null, "3": null, "4": null, "5": 3, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 152, "osmotr": {"yearPlan": 51, "months": {"1": 17, "2": 17, "3": 17, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 51, "months": {"1": 17, "2": 17, "3": 17, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 28, "osmotr": {"yearPlan": 8, "months": {"1": 8, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 8, "months": {"1": null, "2": 4, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 312, "osmotr": {"yearPlan": 104, "months": {"1": 35, "2": 35, "3": 34, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 104, "months": {"1": null, "2": null, "3": null, "4": 12, "5": 12, "6": 12, "7": 12, "8": 12, "9": 12, "10": 12, "11": 12, "12": 8}}}, {"code": "ПСУ", "totalCount": 87, "osmotr": {"yearPlan": 22, "months": {"1": null, "2": null, "3": null, "4": 7, "5": 7, "6": 8, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 22, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": 7, "7": 7, "8": 8, "9": null, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 2082, "osmotr": {"yearPlan": 2082, "months": {"1": null, "2": null, "3": 0, "4": 694, "5": 694, "6": 694, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 1041, "months": {"1": 0, "2": 0, "3": 0, "4": null, "5": 115, "6": 200, "7": 200, "8": 200, "9": 200, "10": 126, "11": null, "12": null}}}, {"code": "МАД", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}]}, {"district": "Кобдинский УТ", "sheet": "Кобда", "objectTypes": [{"code": "РШ", "totalCount": 7, "osmotr": {"yearPlan": null, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": null, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 21, "osmotr": {"yearPlan": null, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": null, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 114, "osmotr": {"yearPlan": 38, "months": {"1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 4, "7": 4, "8": 4, "9": 4, "10": 2, "11": null, "12": null}}, "to": {"yearPlan": 38, "months": {"1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 4, "7": 4, "8": 4, "9": 4, "10": 2, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 235, "osmotr": {"yearPlan": 36, "months": {"1": null, "2": null, "3": null, "4": 5, "5": 5, "6": 5, "7": 5, "8": 5, "9": 5, "10": 6, "11": null, "12": null}}, "to": {"yearPlan": 36, "months": {"1": null, "2": null, "3": null, "4": 5, "5": 5, "6": 5, "7": 5, "8": 5, "9": 5, "10": 6, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 143, "osmotr": {"yearPlan": 35, "months": {"1": null, "2": null, "3": null, "4": null, "5": 9, "6": 9, "7": 9, "8": 8, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 35, "months": {"1": null, "2": null, "3": null, "4": null, "5": 9, "6": 9, "7": 9, "8": 8, "9": null, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 2044, "osmotr": {"yearPlan": 2044, "months": {"1": null, "2": null, "3": null, "4": 681, "5": 681, "6": 682, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 1022, "months": {"1": null, "2": null, "3": null, "4": 145, "5": 145, "6": 144, "7": 144, "8": 144, "9": 144, "10": 144, "11": null, "12": null}}}, {"code": "МАД", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}]}, {"district": "Мартукский ОПУТ", "sheet": "Мартук", "objectTypes": [{"code": "РШ", "totalCount": 18, "osmotr": {"yearPlan": 6, "months": {"1": null, "2": null, "3": null, "4": 2, "5": 2, "6": 2, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 6, "months": {"1": null, "2": null, "3": null, "4": 2, "5": 2, "6": 2, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 39, "osmotr": {"yearPlan": 13, "months": {"1": 5, "2": 4, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 13, "months": {"1": 5, "2": 4, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 167, "osmotr": {"yearPlan": 54, "months": {"1": 18, "2": 18, "3": 18, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 6, "months": {"1": 3, "2": 3, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 499, "osmotr": {"yearPlan": 166, "months": {"1": null, "2": null, "3": null, "4": 28, "5": 28, "6": 26, "7": 28, "8": 28, "9": 28, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 84, "months": {"1": null, "2": null, "3": null, "4": 14, "5": 14, "6": 14, "7": 14, "8": 14, "9": 14, "10": null, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 165, "osmotr": {"yearPlan": 41, "months": {"1": null, "2": null, "3": null, "4": 6, "5": 6, "6": 6, "7": 8, "8": 8, "9": 7, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 35, "months": {"1": null, "2": null, "3": null, "4": 6, "5": 6, "6": 6, "7": 6, "8": 6, "9": 5, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 4612, "osmotr": {"yearPlan": 4612, "months": {"1": null, "2": null, "3": null, "4": 1538, "5": 1537, "6": 1537, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 287, "months": {"1": " ", "2": " ", "3": " ", "4": 41, "5": 41, "6": 41, "7": 41, "8": 41, "9": 41, "10": 41, "11": null, "12": null}}}, {"code": "МАД", "totalCount": 2, "osmotr": {"yearPlan": 0, "months": {"1": null, "2": null, "3": 0, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}]}, {"district": "Мугалжарский ОПУТ", "sheet": "Мугалжар", "objectTypes": [{"code": "РШ", "totalCount": 20, "osmotr": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 708, "osmotr": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 97, "osmotr": {"yearPlan": 30, "months": {"1": 10, "2": 10, "3": 10, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 30, "months": {"1": 10, "2": 10, "3": 10, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 299, "osmotr": {"yearPlan": 67, "months": {"1": null, "2": null, "3": null, "4": 11, "5": 11, "6": 11, "7": 11, "8": 11, "9": 12, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 67, "months": {"1": null, "2": null, "3": null, "4": 11, "5": 11, "6": 11, "7": 11, "8": 11, "9": 12, "10": null, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 262, "osmotr": {"yearPlan": 62, "months": {"1": null, "2": null, "3": null, "4": 20, "5": 21, "6": 21, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 62, "months": {"1": null, "2": null, "3": null, "4": 10, "5": 10, "6": 10, "7": 10, "8": 10, "9": 10, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 2410, "osmotr": {"yearPlan": 2410, "months": {"1": null, "2": null, "3": 0, "4": 804, "5": 804, "6": 802, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 370, "months": {"1": 0, "2": 0, "3": 0, "4": 61, "5": 62, "6": 62, "7": 61, "8": 62, "9": 62, "10": null, "11": null, "12": null}}}, {"code": "МАД", "totalCount": 1, "osmotr": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}]}, {"district": "Темирский ОПУТ", "sheet": "Темир", "objectTypes": [{"code": "РШ", "totalCount": 5, "osmotr": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": 0, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 22, "osmotr": {"yearPlan": 7, "months": {"1": null, "2": 3, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 7, "months": {"1": null, "2": 3, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 36, "osmotr": {"yearPlan": 12, "months": {"1": 4, "2": 4, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 12, "months": {"1": 4, "2": 4, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 476, "osmotr": {"yearPlan": 91, "months": {"1": null, "2": null, "3": null, "4": 16, "5": 15, "6": 15, "7": 15, "8": 15, "9": 15, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 91, "months": {"1": null, "2": null, "3": null, "4": 16, "5": 15, "6": 15, "7": 15, "8": 15, "9": 15, "10": null, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 131, "osmotr": {"yearPlan": 32, "months": {"1": null, "2": null, "3": null, "4": 12, "5": 10, "6": 10, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 32, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": 12, "8": 10, "9": 10, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 3693, "osmotr": {"yearPlan": 3693, "months": {"1": null, "2": null, "3": null, "4": 1231, "5": 1231, "6": 1231, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 200, "months": {"1": null, "2": null, "3": null, "4": 33, "5": 33, "6": 34, "7": 33, "8": 33, "9": 34, "10": null, "11": null, "12": null}}}, {"code": "МАД", "totalCount": 1, "osmotr": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}]}, {"district": "Уилский УТ", "sheet": "Уил", "objectTypes": [{"code": "РШ", "totalCount": 7, "osmotr": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 2, "months": {"1": null, "2": null, "3": null, "4": null, "5": 2, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 10, "osmotr": {"yearPlan": 3, "months": {"1": 3, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 3, "months": {"1": 3, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 34, "osmotr": {"yearPlan": 9, "months": {"1": 3, "2": 3, "3": 3, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 9, "months": {"1": 3, "2": 3, "3": 3, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 125, "osmotr": {"yearPlan": 9, "months": {"1": null, "2": null, "3": null, "4": null, "5": 5, "6": 4, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 9, "months": {"1": null, "2": null, "3": null, "4": null, "5": 5, "6": 4, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 37, "osmotr": {"yearPlan": 9, "months": {"1": null, "2": null, "3": 0, "4": 3, "5": 3, "6": 3, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 9, "months": {"1": null, "2": null, "3": null, "4": 3, "5": 3, "6": 3, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 903, "osmotr": {"yearPlan": 903, "months": {"1": null, "2": null, "3": 0, "4": 301, "5": 301, "6": 301, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 323, "months": {"1": 0, "2": 0, "3": 0, "4": 41, "5": 41, "6": 41, "7": 41, "8": 41, "9": 41, "10": 41, "11": 36, "12": null}}}, {"code": "МАД", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}]}, {"district": "Хромтауский ОПУТ", "sheet": "Хромтау", "objectTypes": [{"code": "РШ", "totalCount": 23, "osmotr": {"yearPlan": 7, "months": {"1": null, "2": null, "3": null, "4": null, "5": 3, "6": 4, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 7, "months": {"1": null, "2": null, "3": null, "4": null, "5": 3, "6": 4, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 886, "osmotr": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 314, "osmotr": {"yearPlan": 101, "months": {"1": 34, "2": 34, "3": 33, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 101, "months": {"1": 34, "2": 34, "3": 33, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 427, "osmotr": {"yearPlan": 141, "months": {"1": null, "2": null, "3": null, "4": 24, "5": 24, "6": 23, "7": 24, "8": 23, "9": 23, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 71, "months": {"1": null, "2": null, "3": null, "4": 12, "5": 12, "6": 12, "7": 12, "8": 12, "9": 11, "10": null, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 215, "osmotr": {"yearPlan": 55, "months": {"1": null, "2": null, "3": 0, "4": 18, "5": 18, "6": 19, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 55, "months": {"1": null, "2": null, "3": null, "4": 10, "5": 9, "6": 9, "7": 9, "8": 9, "9": 9, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 1996, "osmotr": {"yearPlan": 1996, "months": {"1": null, "2": null, "3": 0, "4": 665, "5": 665, "6": 666, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 336, "months": {"1": 0, "2": 0, "3": 0, "4": 48, "5": 48, "6": 48, "7": 48, "8": 48, "9": 48, "10": 48, "11": null, "12": null}}}, {"code": "МАД", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}]}, {"district": "Шалкарский ОПУТ", "sheet": "Шалкар", "objectTypes": [{"code": "РШ", "totalCount": 22, "osmotr": {"yearPlan": 8, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": 4, "8": 4, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 8, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": 4, "8": 4, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 44, "osmotr": {"yearPlan": 15, "months": {"1": 5, "2": 5, "3": 5, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 15, "months": {"1": 5, "2": 5, "3": 5, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 60, "osmotr": {"yearPlan": 20, "months": {"1": 5, "2": 10, "3": 5, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 20, "months": {"1": 5, "2": 10, "3": 5, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 652, "osmotr": {"yearPlan": 200, "months": {"1": null, "2": null, "3": null, "4": 33, "5": 33, "6": 34, "7": 33, "8": 33, "9": 34, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 100, "months": {"1": null, "2": null, "3": null, "4": 17, "5": 17, "6": 16, "7": 17, "8": 17, "9": 16, "10": null, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 292, "osmotr": {"yearPlan": 60, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": 12, "7": 12, "8": 12, "9": 12, "10": 12, "11": null, "12": null}}, "to": {"yearPlan": 60, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": 12, "7": 12, "8": 12, "9": 12, "10": 12, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 4170, "osmotr": {"yearPlan": 4170, "months": {"1": null, "2": null, "3": null, "4": 1394, "5": 1388, "6": 1388, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 400, "months": {"1": null, "2": null, "3": null, "4": 57, "5": 57, "6": 57, "7": 57, "8": 57, "9": 57, "10": 58, "11": null, "12": null}}}, {"code": "МАД", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}]}, {"district": "Эмбенский УТ", "sheet": "Эмба", "objectTypes": [{"code": "РШ", "totalCount": 12, "osmotr": {"yearPlan": 0, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 4, "months": {"1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": 2, "9": 2, "10": null, "11": null, "12": null}}}, {"code": "ОРШ", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}, {"code": "РК", "totalCount": 41, "osmotr": {"yearPlan": 9, "months": {"1": null, "2": 5, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 14, "months": {"1": 5, "2": 5, "3": 4, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "ОРК", "totalCount": 21, "osmotr": {"yearPlan": 5, "months": {"1": null, "2": 3, "3": 2, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 5, "months": {"1": null, "2": 3, "3": 2, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}}, {"code": "КЯ", "totalCount": 354, "osmotr": {"yearPlan": 118, "months": {"1": null, "2": null, "3": null, "4": 31, "5": 43, "6": 44, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 42, "months": {"1": null, "2": null, "3": null, "4": 7, "5": 7, "6": 7, "7": 7, "8": 7, "9": 7, "10": null, "11": null, "12": null}}}, {"code": "ПСУ", "totalCount": 89, "osmotr": {"yearPlan": 22, "months": {"1": null, "2": null, "3": null, "4": null, "5": 11, "6": 11, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 22, "months": {"1": null, "2": null, "3": null, "4": 5, "5": 5, "6": 4, "7": 4, "8": 4, "9": null, "10": null, "11": null, "12": null}}}, {"code": "Опоры", "totalCount": 1908, "osmotr": {"yearPlan": 1908, "months": {"1": null, "2": null, "3": 0, "4": 636, "5": 636, "6": 636, "7": null, "8": null, "9": null, "10": null, "11": null, "12": null}}, "to": {"yearPlan": 465, "months": {"1": 0, "2": 0, "3": 0, "4": 75, "5": 75, "6": 75, "7": 60, "8": 60, "9": 60, "10": 60, "11": null, "12": null}}}, {"code": "МАД", "totalCount": 0, "osmotr": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}, "to": {"yearPlan": 0, "months": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0}}}]}];
+const PPR_MONTH_NAMES = ['','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const ADMIN_CODE = 'admin2026'; // Код администратора. Чтобы изменить — поменяйте это значение в файле.
+
+let appMode = 'tr'; // 'tr' | 'ppr'
+let pprMonth = 7; // текущий месяц по умолчанию
+let pprActiveTab = 'overview'; // 'overview' | district index (as string)
+let pprData = {}; // pprData["d{idx}-m{month}"] = { [typeCode]: {osmotr:{value,by,at,history:[]}, to:{...}} }
+let pprLoading = {};
+const pprOpenHistory = {};
 
 let activeTab = 'overview';
 let reportData = {}; // { districtIdx: { itemNum: {status, comment, by, at, history:[{status,comment,by,at,ts}]} } }
@@ -653,13 +750,55 @@ function overallStats(){
   return { sumAll, totalAll, pct: totalAll ? sumAll/totalAll : 0 };
 }
 
-function renderSummary(){
+function renderTRSummary(){
   const s = overallStats();
   document.getElementById('summaryPill').innerHTML =
     'Выполнено: <b>' + s.sumAll.toFixed(1) + ' из ' + s.totalAll + '</b> объектов &nbsp;·&nbsp; <b>' + Math.round(s.pct*100) + '%</b>';
 }
 
+// ==== Диспетчеры режима: ТР / ППР ====
+function renderSummary(){
+  if(appMode === 'ppr'){ renderPPRSummary(); } else { renderTRSummary(); }
+}
 function renderTabs(){
+  if(appMode === 'ppr'){ renderPPRTabs(); } else { renderTRTabs(); }
+}
+function renderPanel(){
+  if(appMode === 'ppr'){ renderPPRPanel(); } else { renderTRPanel(); }
+}
+
+document.querySelectorAll('.mode-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    appMode = btn.getAttribute('data-mode');
+    document.querySelectorAll('.mode-btn').forEach(b=> b.classList.toggle('active', b === btn));
+    document.getElementById('pprMonthPicker').style.display = (appMode === 'ppr') ? 'flex' : 'none';
+    document.getElementById('pprImportBtn').style.display = (appMode === 'ppr') ? 'inline-flex' : 'none';
+    if(appMode === 'ppr'){
+      pprActiveTab = 'overview';
+      ensurePPRMonthLoaded(pprMonth).then(()=>{ renderTabs(); renderPanel(); renderSummary(); });
+    } else {
+      renderTabs(); renderPanel(); renderSummary();
+    }
+  });
+});
+
+const pprMonthSelectEl = document.getElementById('pprMonthSelect');
+for(let m=1;m<=12;m++){
+  const opt = document.createElement('option');
+  opt.value = m;
+  opt.textContent = PPR_MONTH_NAMES[m] + ' 2026';
+  if(m === pprMonth) opt.selected = true;
+  pprMonthSelectEl.appendChild(opt);
+}
+pprMonthSelectEl.addEventListener('change', async ()=>{
+  pprMonth = Number(pprMonthSelectEl.value);
+  await ensurePPRMonthLoaded(pprMonth);
+  renderTabs();
+  renderPanel();
+  renderSummary();
+});
+
+function renderTRTabs(){
   const bar = document.getElementById('tabsBar');
   let html = '<button class="tab-btn ' + (activeTab==='overview'?'active':'') + '" data-tab="overview">Обзор</button>';
   DISTRICTS.forEach((d, i)=>{
@@ -704,7 +843,7 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-function renderPanel(){
+function renderTRPanel(){
   const panel = document.getElementById('panelContent');
   if(activeTab === 'journal' && !isAdmin) activeTab = 'overview';
 
@@ -952,7 +1091,9 @@ document.getElementById('myName').addEventListener('change', (e)=>{
   try{ localStorage.setItem('trplan2026:myname', myName); }catch(err){}
 });
 
-document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  if(appMode === 'ppr'){ exportPPRToExcel(); } else { exportToExcel(); }
+});
 
 function exportToExcel(){
   const aoa = [];
@@ -1005,6 +1146,463 @@ function exportToExcel(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Отчет ТР 2026');
   XLSX.writeFile(wb, 'Отчет_ТР_2026_Актюбинский_ДЭСД.xlsx');
+}
+
+// ================= МОДУЛЬ ППР =================
+
+function pprKeyFor(dIdx, month){ return 'ppr:d' + dIdx + ':m' + month; }
+
+async function ensurePPRMonthLoaded(month){
+  const anyMissing = PPR_DISTRICTS.some((d,i)=> pprData[i + '-' + month] === undefined);
+  if(!anyMissing) return;
+  if(!apiConfigured()) {
+    PPR_DISTRICTS.forEach((d,i)=>{ pprData[i + '-' + month] = pprData[i + '-' + month] || {}; });
+    return;
+  }
+  try{
+    const bulk = await apiBulkGet('ppr:d');
+    PPR_DISTRICTS.forEach((d, i)=>{
+      const key = pprKeyFor(i, month);
+      const raw = bulk[key];
+      pprData[i + '-' + month] = raw ? JSON.parse(raw) : {};
+    });
+  }catch(e){
+    console.error('ppr load failed', e);
+    PPR_DISTRICTS.forEach((d,i)=>{ pprData[i + '-' + month] = pprData[i + '-' + month] || {}; });
+  }
+}
+
+function getPPRItemState(dIdx, month, typeCode){
+  const bucket = pprData[dIdx + '-' + month] || {};
+  const item = bucket[typeCode] || {};
+  return {
+    osmotr: item.osmotr || {value:0, by:'', at:'', history:[]},
+    to: item.to || {value:0, by:'', at:'', history:[]}
+  };
+}
+
+function setPPRItemState(dIdx, month, typeCode, category, value, sourceLabel){
+  const key = dIdx + '-' + month;
+  if(!pprData[key]) pprData[key] = {};
+  if(!pprData[key][typeCode]) pprData[key][typeCode] = {};
+  const cur = pprData[key][typeCode][category] || {value:0, by:'', at:'', history:[]};
+  const now = new Date();
+  const entry = { value: Number(value)||0, by: sourceLabel || myName || 'без имени', at: now.toLocaleString('ru-RU'), ts: now.getTime() };
+  const history = (cur.history || []).concat([entry]);
+  pprData[key][typeCode][category] = { value: entry.value, by: entry.by, at: entry.at, history: history };
+  schedulePPRSave(dIdx, month);
+}
+
+const pprSaveTimers = {};
+function schedulePPRSave(dIdx, month){
+  const timerKey = dIdx + '-' + month;
+  clearTimeout(pprSaveTimers[timerKey]);
+  pprSaveTimers[timerKey] = setTimeout(async ()=>{
+    if(!apiConfigured()) return;
+    try{
+      await apiSet(pprKeyFor(dIdx, month), JSON.stringify(pprData[timerKey]));
+      flashSave();
+    }catch(e){
+      console.error('ppr save failed', e);
+      alert('Не удалось сохранить изменения ППР. Проверьте интернет-соединение.');
+    }
+    renderTabs();
+    renderSummary();
+  }, 600);
+}
+
+function pprDistrictStats(dIdx, month){
+  const d = PPR_DISTRICTS[dIdx];
+  let planOsmotr=0, factOsmotr=0, planTo=0, factTo=0;
+  d.objectTypes.forEach(ot=>{
+    const st = getPPRItemState(dIdx, month, ot.code);
+    planOsmotr += Number((ot.osmotr.months[String(month)])||0);
+    factOsmotr += Number(st.osmotr.value)||0;
+    planTo += Number((ot.to.months[String(month)])||0);
+    factTo += Number(st.to.value)||0;
+  });
+  const pctOsmotr = planOsmotr ? factOsmotr/planOsmotr : 0;
+  const pctTo = planTo ? factTo/planTo : 0;
+  return {planOsmotr, factOsmotr, pctOsmotr, planTo, factTo, pctTo};
+}
+
+function pprOverallStats(month){
+  let planOsmotr=0, factOsmotr=0, planTo=0, factTo=0;
+  PPR_DISTRICTS.forEach((d,i)=>{
+    const s = pprDistrictStats(i, month);
+    planOsmotr += s.planOsmotr; factOsmotr += s.factOsmotr;
+    planTo += s.planTo; factTo += s.factTo;
+  });
+  return {
+    planOsmotr, factOsmotr, pctOsmotr: planOsmotr? factOsmotr/planOsmotr:0,
+    planTo, factTo, pctTo: planTo? factTo/planTo:0
+  };
+}
+
+function renderPPRSummary(){
+  const s = pprOverallStats(pprMonth);
+  document.getElementById('summaryPill').innerHTML =
+    'Осмотр: <b>' + Math.round(s.pctOsmotr*100) + '%</b> (' + s.factOsmotr + ' из ' + s.planOsmotr + ') &nbsp;·&nbsp; ТО: <b>' + Math.round(s.pctTo*100) + '%</b> (' + s.factTo + ' из ' + s.planTo + ')';
+}
+
+function renderPPRTabs(){
+  const bar = document.getElementById('tabsBar');
+  let html = '<button class="tab-btn ' + (pprActiveTab==='overview'?'active':'') + '" data-ppr-tab="overview">Обзор</button>';
+  PPR_DISTRICTS.forEach((d, i)=>{
+    const s = pprDistrictStats(i, pprMonth);
+    const avgPct = (s.pctOsmotr + s.pctTo) / 2;
+    let badgeClass = '';
+    if(avgPct >= 0.999) badgeClass = 'done';
+    else if(avgPct > 0) badgeClass = 'mid';
+    html += '<button class="tab-btn ' + (pprActiveTab===String(i)?'active':'') + '" data-ppr-tab="' + i + '">' +
+      escapeHtml(d.district) +
+      '<span class="tab-badge ' + badgeClass + '">' + Math.round(avgPct*100) + '%</span>' +
+      '</button>';
+  });
+  if(isAdmin){
+    html += '<button class="tab-btn ' + (pprActiveTab==='journal'?'active':'') + '" data-ppr-tab="journal">📋 Журнал (админ)</button>';
+  }
+  bar.innerHTML = html;
+  bar.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      pprActiveTab = btn.getAttribute('data-ppr-tab');
+      renderTabs();
+      renderPanel();
+    });
+  });
+}
+
+async function renderPPRPanel(){
+  const panel = document.getElementById('panelContent');
+  await ensurePPRMonthLoaded(pprMonth);
+
+  if(pprActiveTab === 'journal' && !isAdmin) pprActiveTab = 'overview';
+
+  if(pprActiveTab === 'journal'){
+    renderPPRJournal(panel);
+    return;
+  }
+
+  if(pprActiveTab === 'overview'){
+    let cards = '';
+    PPR_DISTRICTS.forEach((d,i)=>{
+      const s = pprDistrictStats(i, pprMonth);
+      const avgPct = (s.pctOsmotr + s.pctTo) / 2;
+      cards += '<div class="ov-card" data-ppr-goto="' + i + '">' +
+        '<div class="name">' + escapeHtml(d.district) + '</div>' +
+        '<div class="count">Осмотр: ' + s.factOsmotr + '/' + s.planOsmotr + ' · ТО: ' + s.factTo + '/' + s.planTo + '</div>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + (avgPct*100) + '%"></div></div>' +
+        '<div class="pct">' + Math.round(avgPct*100) + '%</div>' +
+      '</div>';
+    });
+    panel.innerHTML =
+      '<h2>ППР — общий прогресс за ' + PPR_MONTH_NAMES[pprMonth] + ' 2026</h2>' +
+      '<p class="sub">Актюбинский ДЭСД · нажмите на карточку района, чтобы открыть форму заполнения</p>' +
+      '<div class="shared-note">Данные ППР хранятся в той же общей Google Таблице, отдельно от данных ТР.</div>' +
+      (!canEdit() ? '<div class="lock-note">🔒 Заполнение заблокировано. Нажмите «Код для заполнения» вверху, чтобы вносить данные.</div>' : '') +
+      '<div class="ov-grid">' + cards + '</div>';
+    panel.querySelectorAll('.ov-card').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        pprActiveTab = card.getAttribute('data-ppr-goto');
+        renderTabs();
+        renderPanel();
+      });
+    });
+    return;
+  }
+
+  const dIdx = Number(pprActiveTab);
+  const d = PPR_DISTRICTS[dIdx];
+  const locked = !canEdit();
+  const dis = locked ? 'disabled' : '';
+
+  let rows = '';
+  d.objectTypes.forEach(ot=>{
+    const st = getPPRItemState(dIdx, pprMonth, ot.code);
+    const planOsm = Number(ot.osmotr.months[String(pprMonth)]) || 0;
+    const planTo = Number(ot.to.months[String(pprMonth)]) || 0;
+    const factOsm = Number(st.osmotr.value) || 0;
+    const factTo = Number(st.to.value) || 0;
+    const pctOsm = planOsm ? Math.round(factOsm/planOsm*100) : 0;
+    const pctToVal = planTo ? Math.round(factTo/planTo*100) : 0;
+
+    rows += '<div class="item-row" style="grid-template-columns: 60px 1fr;">' +
+      '<div class="item-num" style="width:50px;">' + escapeHtml(ot.code) + '</div>' +
+      '<div class="item-body">' +
+        '<div class="work-name">Общее кол-во объектов: ' + (ot.totalCount||0) + '</div>' +
+        '<div class="ppr-metric-grid">' +
+          '<div class="ppr-metric">' +
+            '<div class="ppr-metric-title">Осмотр</div>' +
+            '<div class="ppr-metric-row"><span>План (месяц):</span><b>' + planOsm + '</b></div>' +
+            '<div class="ppr-metric-row"><span>Факт:</span> <input type="number" min="0" class="ppr-fact-input" data-district="' + dIdx + '" data-type="' + ot.code + '" data-cat="osmotr" value="' + factOsm + '" ' + dis + '></div>' +
+            '<div class="ppr-metric-row"><span>%:</span> <b>' + pctOsm + '%</b></div>' +
+            '<div class="fill-meta">' + fillMetaText(st.osmotr) + '</div>' +
+            (isAdmin ? pprHistoryBlock(dIdx, pprMonth, ot.code, 'osmotr', st.osmotr) : '') +
+          '</div>' +
+          '<div class="ppr-metric">' +
+            '<div class="ppr-metric-title">ТО</div>' +
+            '<div class="ppr-metric-row"><span>План (месяц):</span><b>' + planTo + '</b></div>' +
+            '<div class="ppr-metric-row"><span>Факт:</span> <input type="number" min="0" class="ppr-fact-input" data-district="' + dIdx + '" data-type="' + ot.code + '" data-cat="to" value="' + factTo + '" ' + dis + '></div>' +
+            '<div class="ppr-metric-row"><span>%:</span> <b>' + pctToVal + '%</b></div>' +
+            '<div class="fill-meta">' + fillMetaText(st.to) + '</div>' +
+            (isAdmin ? pprHistoryBlock(dIdx, pprMonth, ot.code, 'to', st.to) : '') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  });
+
+  const s = pprDistrictStats(dIdx, pprMonth);
+  panel.innerHTML =
+    '<h2>' + escapeHtml(d.district) + ' — ' + PPR_MONTH_NAMES[pprMonth] + ' 2026</h2>' +
+    '<p class="sub">Осмотр: ' + s.factOsmotr + ' из ' + s.planOsmotr + ' (' + Math.round(s.pctOsmotr*100) + '%) · ТО: ' + s.factTo + ' из ' + s.planTo + ' (' + Math.round(s.pctTo*100) + '%)</p>' +
+    (locked ? '<div class="lock-note">🔒 Заполнение заблокировано. Нажмите «Код для заполнения» вверху страницы.</div>' : '') +
+    rows;
+
+  panel.querySelectorAll('.ppr-fact-input').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      const dI = Number(inp.getAttribute('data-district'));
+      const typeCode = inp.getAttribute('data-type');
+      const cat = inp.getAttribute('data-cat');
+      setPPRItemState(dI, pprMonth, typeCode, cat, inp.value);
+      renderPanel();
+    });
+  });
+
+  if(isAdmin){
+    panel.querySelectorAll('.ppr-history-toggle').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.getAttribute('data-id');
+        pprOpenHistory[id] = !pprOpenHistory[id];
+        renderPanel();
+      });
+    });
+  }
+}
+
+function pprHistoryBlock(dIdx, month, typeCode, cat, st){
+  const id = dIdx + '-' + month + '-' + typeCode + '-' + cat;
+  const hist = (st.history || []).slice().reverse();
+  const open = !!pprOpenHistory[id];
+  let items = hist.map(h=>{
+    return '<div class="history-entry"><b>' + h.value + '</b> · ' + escapeHtml(h.by||'—') + ' · ' + escapeHtml(h.at||'') + '</div>';
+  }).join('');
+  if(!items) items = '<div class="history-entry">Изменений пока нет.</div>';
+  return '<button type="button" class="history-toggle ppr-history-toggle" data-id="' + id + '">' +
+      (open ? 'Скрыть историю' : 'История (' + hist.length + ')') +
+    '</button>' +
+    '<div class="history-list ' + (open?'open':'') + '">' + items + '</div>';
+}
+
+function renderPPRJournal(panel){
+  const entries = [];
+  PPR_DISTRICTS.forEach((d, dIdx)=>{
+    for(let m=1;m<=12;m++){
+      const bucket = pprData[dIdx + '-' + m];
+      if(!bucket) continue;
+      d.objectTypes.forEach(ot=>{
+        const item = bucket[ot.code];
+        if(!item) return;
+        ['osmotr','to'].forEach(cat=>{
+          const st = item[cat];
+          if(!st || !st.history) return;
+          st.history.forEach(h=>{
+            entries.push({ ts: h.ts||0, district: d.district, month: m, type: ot.code, cat: cat==='osmotr'?'Осмотр':'ТО', value: h.value, by: h.by||'—', at: h.at||'' });
+          });
+        });
+      });
+    }
+  });
+  entries.sort((a,b)=> b.ts - a.ts);
+  let rowsHtml = entries.map(e=>{
+    return '<tr>' +
+      '<td>' + escapeHtml(e.at) + '</td>' +
+      '<td>' + escapeHtml(shortName(e.district)) + '</td>' +
+      '<td>' + PPR_MONTH_NAMES[e.month] + '</td>' +
+      '<td>' + escapeHtml(e.type) + '</td>' +
+      '<td>' + escapeHtml(e.cat) + '</td>' +
+      '<td><b>' + e.value + '</b></td>' +
+      '<td>' + escapeHtml(e.by) + '</td>' +
+    '</tr>';
+  }).join('');
+  if(!entries.length) rowsHtml = '<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:20px;">Изменений пока никто не вносил.</td></tr>';
+
+  panel.innerHTML =
+    '<h2>Журнал действий — ППР</h2>' +
+    '<p class="sub">Полная история изменений по всем районам и месяцам · видно только администратору · всего записей: ' + entries.length + '</p>' +
+    '<div style="max-height:65vh; overflow:auto; border:1px solid var(--line); border-radius:10px;">' +
+    '<table class="journal-table">' +
+      '<thead><tr><th>Дата</th><th>Район</th><th>Месяц</th><th>Тип</th><th>Показатель</th><th>Значение</th><th>Заполнил</th></tr></thead>' +
+      '<tbody>' + rowsHtml + '</tbody>' +
+    '</table>' +
+    '</div>';
+}
+
+async function exportPPRToExcel(){
+  await ensurePPRMonthLoaded(pprMonth);
+  const TYPE_ORDER = ["РШ","ОРШ","РК","ОРК","КЯ","ПСУ","Опоры","МАД"];
+
+  // ---- Отчёт 1: Свод по сети ----
+  const aoa1 = [];
+  aoa1.push(['Объекты ЛС','Общее количество','Осмотр','','','Техническое обслуживание','','']);
+  aoa1.push(['','объекты ЛС шт','план','факт','%','план','факт','%']);
+  const totalsByType = {};
+  TYPE_ORDER.forEach(code=>{ totalsByType[code] = {count:0, planOsm:0, factOsm:0, planTo:0, factTo:0}; });
+  PPR_DISTRICTS.forEach((d,i)=>{
+    d.objectTypes.forEach(ot=>{
+      const st = getPPRItemState(i, pprMonth, ot.code);
+      const t = totalsByType[ot.code];
+      t.count += Number(ot.totalCount)||0;
+      t.planOsm += Number(ot.osmotr.months[String(pprMonth)])||0;
+      t.factOsm += Number(st.osmotr.value)||0;
+      t.planTo += Number(ot.to.months[String(pprMonth)])||0;
+      t.factTo += Number(st.to.value)||0;
+    });
+  });
+  let grand = {count:0, planOsm:0, factOsm:0, planTo:0, factTo:0};
+  TYPE_ORDER.forEach(code=>{
+    const t = totalsByType[code];
+    aoa1.push([code, t.count, t.planOsm, t.factOsm, t.planOsm? t.factOsm/t.planOsm:0, t.planTo, t.factTo, t.planTo? t.factTo/t.planTo:0]);
+    grand.count+=t.count; grand.planOsm+=t.planOsm; grand.factOsm+=t.factOsm; grand.planTo+=t.planTo; grand.factTo+=t.factTo;
+  });
+  aoa1.push(['Итого', grand.count, grand.planOsm, grand.factOsm, grand.planOsm? grand.factOsm/grand.planOsm:0, grand.planTo, grand.factTo, grand.planTo? grand.factTo/grand.planTo:0]);
+
+  const ws1 = XLSX.utils.aoa_to_sheet(aoa1);
+  ws1['!cols'] = [{wch:16},{wch:14},{wch:9},{wch:9},{wch:8},{wch:9},{wch:9},{wch:8}];
+  ['E','H'].forEach(col=>{
+    for(let r=3;r<=aoa1.length;r++){
+      const ref = col + r;
+      if(ws1[ref] && typeof ws1[ref].v === 'number') ws1[ref].z = '0%';
+    }
+  });
+
+  // ---- Отчёт 2: По подразделениям ----
+  const aoa2 = [];
+  aoa2.push(['Подразделение','Общее кол-во объектов ЛС, шт.','Норматив/план на месяц (Осмотр)','Выполнено осмотров','% выполнения осмотра','План ТО на месяц','Выполнено ТО','% выполнения ТО']);
+  PPR_DISTRICTS.forEach((d,i)=>{
+    const s = pprDistrictStats(i, pprMonth);
+    const totalCount = d.objectTypes.reduce((a,ot)=> a + (Number(ot.totalCount)||0), 0);
+    aoa2.push([d.district, totalCount, s.planOsmotr, s.factOsmotr, s.planOsmotr? s.factOsmotr/s.planOsmotr:0, s.planTo, s.factTo, s.planTo? s.factTo/s.planTo:0]);
+  });
+  aoa2.push([]);
+  aoa2.push(['Всего по типам объектов','','','','','','','']);
+  TYPE_ORDER.forEach(code=>{
+    const t = totalsByType[code];
+    aoa2.push([code, t.count, t.planOsm, t.factOsm, t.planOsm? t.factOsm/t.planOsm:0, t.planTo, t.factTo, t.planTo? t.factTo/t.planTo:0]);
+  });
+  aoa2.push([]);
+  aoa2.push(['Отчёт за ' + PPR_MONTH_NAMES[pprMonth].toLowerCase() + ' месяц 2026 года · выгружено ' + new Date().toLocaleString('ru-RU')]);
+
+  const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
+  ws2['!cols'] = [{wch:22},{wch:16},{wch:14},{wch:12},{wch:10},{wch:12},{wch:12},{wch:10}];
+  ['E','H'].forEach(col=>{
+    for(let r=2;r<=PPR_DISTRICTS.length+1;r++){
+      const ref = col + r;
+      if(ws2[ref] && typeof ws2[ref].v === 'number') ws2[ref].z = '0%';
+    }
+  });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws1, 'Свод по сети');
+  XLSX.utils.book_append_sheet(wb, ws2, 'По подразделениям');
+  XLSX.writeFile(wb, 'ППР_Отчет_' + PPR_MONTH_NAMES[pprMonth] + '_2026.xlsx');
+}
+
+// ---- Импорт факта из выгрузки программного комплекса ----
+document.getElementById('pprImportBtn').addEventListener('click', ()=>{
+  document.getElementById('pprImportFile').click();
+});
+
+document.getElementById('pprImportFile').addEventListener('change', handlePPRImportFile);
+
+async function handlePPRImportFile(e){
+  const file = e.target.files[0];
+  if(!file){ return; }
+  if(!canEdit()){
+    alert('Импорт данных доступен только при разблокированном заполнении (введите код доступа) или в режиме администратора.');
+    e.target.value = '';
+    return;
+  }
+  try{
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+    const sheetName = wb.SheetNames.find(n => n.trim().toLowerCase() === 'reportdata3')
+      || wb.SheetNames.find(n => n.toLowerCase().includes('reportdata3'));
+    if(!sheetName){
+      alert('В файле не найден лист "ReportData3" — не могу извлечь данные. Убедитесь, что это та же выгрузка, что и раньше.');
+      e.target.value = '';
+      return;
+    }
+    const ws = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true });
+
+    let periodText = '';
+    rows.forEach(r=>{
+      if(r && typeof r[1] === 'string' && r[1].toLowerCase().includes('период') && r[2]){
+        periodText = String(r[2]);
+      }
+    });
+
+    const TYPE_MAP = {
+      'РШ':'РШ', 'ОРШ':'ОРШ', 'РК':'РК', 'ОРК':'ОРК', 'КЯ':'КЯ', 'ПСУ':'ПСУ',
+      'Опоры':'Опоры',
+      'МАД (ШАД+УБАД)':'МАД', 'МАД(ШАД+УБАД)':'МАД', 'МАД (ШАД-УБАД)':'МАД', 'МАД':'МАД'
+    };
+
+    const sums = {}; // sums[districtName][typeCode] = {osmotr, to}
+    rows.forEach(r=>{
+      if(!r || r.length < 16) return;
+      const district = r[0];
+      const typeRaw = r[2];
+      const npFlag = r[22];
+      if(typeof district !== 'string') return;
+      if(npFlag !== 'нет') return; // пропускаем строки "Итого по НП"
+      const typeCode = TYPE_MAP[typeRaw];
+      if(!typeCode) return;
+      const factOsmotr = Number(r[11]) || 0; // p11 — выполнено всего (осмотр)
+      const factTo = Number(r[15]) || 0;      // p15 — выполнено ТО
+      if(!sums[district]) sums[district] = {};
+      if(!sums[district][typeCode]) sums[district][typeCode] = {osmotr:0, to:0};
+      sums[district][typeCode].osmotr += factOsmotr;
+      sums[district][typeCode].to += factTo;
+    });
+
+    const matchedDistricts = Object.keys(sums).filter(name => PPR_DISTRICTS.some(d => d.district === name));
+    if(!matchedDistricts.length){
+      alert('Не удалось сопоставить ни один район из файла с районами на сайте. Проверьте, что это выгрузка по Актюбинскому ДЭСД.');
+      e.target.value = '';
+      return;
+    }
+
+    const ok = confirm(
+      'Найден отчёт за период: ' + (periodText || 'не указан') + '.\n\n' +
+      'Будут обновлены факты по Осмотру и ТО за месяц «' + PPR_MONTH_NAMES[pprMonth] + ' 2026» ' +
+      'по ' + matchedDistricts.length + ' район(ам), найденным в файле.\n' +
+      'Текущие значения по этим районам/типам объектов будут заменены данными из файла.\n\n' +
+      'Продолжить?'
+    );
+    if(!ok){ e.target.value = ''; return; }
+
+    const sourceLabel = 'Импорт из выгрузки (' + (myName || 'без имени') + ')';
+    matchedDistricts.forEach(districtName=>{
+      const dIdx = PPR_DISTRICTS.findIndex(d => d.district === districtName);
+      const typesSum = sums[districtName];
+      Object.keys(typesSum).forEach(typeCode=>{
+        setPPRItemState(dIdx, pprMonth, typeCode, 'osmotr', typesSum[typeCode].osmotr, sourceLabel);
+        setPPRItemState(dIdx, pprMonth, typeCode, 'to', typesSum[typeCode].to, sourceLabel);
+      });
+    });
+
+    alert('Импорт завершён по ' + matchedDistricts.length + ' район(ам). Данные сохраняются...');
+    renderTabs();
+    renderPanel();
+    renderSummary();
+  }catch(err){
+    console.error(err);
+    alert('Не удалось прочитать файл. Убедитесь, что это тот же формат выгрузки (лист ReportData3), что и раньше.');
+  } finally {
+    e.target.value = '';
+  }
 }
 
 loadAll();
