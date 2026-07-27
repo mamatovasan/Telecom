@@ -1508,8 +1508,14 @@ function xmlEscape(s){
 // pctValue (0..1) — если задан, ячейка красится по проценту (зелёный/жёлтый/красный), игнорируя зебру.
 function xmlCell(value, kind, rowIsEven, mergeAcross, pctValue){
   let styleId;
+  const directMap = {
+    'purpleLeft':'PurpleLeft', 'purpleCenter':'PurpleCenter',
+    'tanLeft':'TanLeft', 'tanCenter':'TanCenter',
+    'totalsLeft':'TotalsLeft', 'totalsCenter':'TotalsCenter'
+  };
   if(kind === 'header') styleId = 'Header';
   else if(kind === 'note') styleId = 'Note';
+  else if(directMap[kind]) styleId = directMap[kind];
   else if(kind === 'pct' && pctValue != null){
     styleId = pctColors(pctValue);
   } else if(kind === 'left'){
@@ -1530,16 +1536,28 @@ function xmlRow(cellsXml){
 
 const XLS_STYLES_XML =
 '<Styles>' +
-  '<Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#024D78" ss:Pattern="Solid"/>' +
+  '<Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#4472C4" ss:Pattern="Solid"/>' +
     '<Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>' +
     '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
   '<Style ss:ID="ZebraOddCenter"><Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>' +
     '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
-  '<Style ss:ID="ZebraEvenCenter"><Interior ss:Color="#F2F8FD" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>' +
+  '<Style ss:ID="ZebraEvenCenter"><Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>' +
     '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
   '<Style ss:ID="ZebraOddLeft"><Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/><Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1"/>' +
     '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
-  '<Style ss:ID="ZebraEvenLeft"><Interior ss:Color="#F2F8FD" ss:Pattern="Solid"/><Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1"/>' +
+  '<Style ss:ID="ZebraEvenLeft"><Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/><Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="PurpleCenter"><Font ss:Bold="1" ss:Color="#5F497A"/><Interior ss:Color="#E4DFEC" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="PurpleLeft"><Font ss:Bold="1" ss:Color="#5F497A"/><Interior ss:Color="#E4DFEC" ss:Pattern="Solid"/><Alignment ss:Horizontal="Left" ss:Vertical="Center"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="TanCenter"><Interior ss:Color="#FFF2CC" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9C994"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9C994"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9C994"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9C994"/></Borders></Style>' +
+  '<Style ss:ID="TanLeft"><Interior ss:Color="#FFF2CC" ss:Pattern="Solid"/><Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9C994"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9C994"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9C994"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9C994"/></Borders></Style>' +
+  '<Style ss:ID="TotalsCenter"><Interior ss:Color="#DCE6F1" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="TotalsLeft"><Font ss:Bold="1"/><Interior ss:Color="#DCE6F1" ss:Pattern="Solid"/><Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1"/>' +
     '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
   '<Style ss:ID="Green"><Font ss:Bold="1" ss:Color="#1E7A44"/><Interior ss:Color="#DFF3E4" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/>' +
     '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
@@ -1639,11 +1657,11 @@ async function exportPPRToExcel(){
       xmlCell(t.count,'center',even),
       xmlCell(t.planOsm,'center',even),
       xmlCell(t.factOsm,'center',even),
-      xmlCell(Math.round(pO*100)+'%','pct',even,0,pO),
+      xmlCell(Math.round(pO*100)+'%','center',even),
       xmlCell(pctBar(pO),'pct',even,0,pO),
       xmlCell(t.planTo,'center',even),
       xmlCell(t.factTo,'center',even),
-      xmlCell(Math.round(pT*100)+'%','pct',even,0,pT),
+      xmlCell(Math.round(pT*100)+'%','center',even),
       xmlCell(pctBar(pT),'pct',even,0,pT)
     ]));
     grand.count+=t.count; grand.planOsm+=t.planOsm; grand.factOsm+=t.factOsm; grand.planTo+=t.planTo; grand.factTo+=t.factTo;
@@ -1651,15 +1669,15 @@ async function exportPPRToExcel(){
   const grandPO = grand.planOsm? grand.factOsm/grand.planOsm:0;
   const grandPT = grand.planTo? grand.factTo/grand.planTo:0;
   rows1.push(xmlRow([
-    xmlCell('Итого','left',true),
-    xmlCell(grand.count,'center',true),
-    xmlCell(grand.planOsm,'center',true),
-    xmlCell(grand.factOsm,'center',true),
-    xmlCell(Math.round(grandPO*100)+'%','pct',true,0,grandPO),
+    xmlCell('Итого','purpleLeft'),
+    xmlCell(grand.count,'purpleCenter'),
+    xmlCell(grand.planOsm,'purpleCenter'),
+    xmlCell(grand.factOsm,'purpleCenter'),
+    xmlCell(Math.round(grandPO*100)+'%','purpleCenter'),
     xmlCell(pctBar(grandPO),'pct',true,0,grandPO),
-    xmlCell(grand.planTo,'center',true),
-    xmlCell(grand.factTo,'center',true),
-    xmlCell(Math.round(grandPT*100)+'%','pct',true,0,grandPT),
+    xmlCell(grand.planTo,'purpleCenter'),
+    xmlCell(grand.factTo,'purpleCenter'),
+    xmlCell(Math.round(grandPT*100)+'%','purpleCenter'),
     xmlCell(pctBar(grandPT),'pct',true,0,grandPT)
   ]));
 
@@ -1673,50 +1691,46 @@ async function exportPPRToExcel(){
     'Утв. план за ' + monthLabel + ' (Осмотр)','Утв. план за ' + monthLabel + ' (ТО)'
   ].map(t => xmlCell(t,'header',false))));
 
-  rIdx = 0;
   PPR_DISTRICTS.forEach((d,i)=>{
     const s = pprDistrictStats(i, months);
     const totalCount = d.objectTypes.reduce((a,ot)=> a + (Number(ot.totalCount)||0), 0);
     const pO = s.planOsmotr? s.factOsmotr/s.planOsmotr:0;
     const pT = s.planTo? s.factTo/s.planTo:0;
-    const even = (rIdx++ % 2 === 0);
     rows2.push(xmlRow([
-      xmlCell(d.district,'left',even),
-      xmlCell(totalCount,'center',even),
-      xmlCell(s.planOsmotr,'center',even),
-      xmlCell(s.factOsmotr,'center',even),
-      xmlCell(Math.round(pO*100)+'%','pct',even,0,pO),
-      xmlCell(pctBar(pO),'pct',even,0,pO),
-      xmlCell(s.planTo,'center',even),
-      xmlCell(s.factTo,'center',even),
-      xmlCell(Math.round(pT*100)+'%','pct',even,0,pT),
-      xmlCell(pctBar(pT),'pct',even,0,pT),
-      xmlCell(s.planOsmotr,'center',even),
-      xmlCell(s.planTo,'center',even)
+      xmlCell(d.district,'tanLeft'),
+      xmlCell(totalCount,'tanCenter'),
+      xmlCell(s.planOsmotr,'tanCenter'),
+      xmlCell(s.factOsmotr,'tanCenter'),
+      xmlCell(Math.round(pO*100)+'%','tanCenter'),
+      xmlCell(pctBar(pO),'pct',false,0,pO),
+      xmlCell(s.planTo,'tanCenter'),
+      xmlCell(s.factTo,'tanCenter'),
+      xmlCell(Math.round(pT*100)+'%','tanCenter'),
+      xmlCell(pctBar(pT),'pct',false,0,pT),
+      xmlCell(s.planOsmotr,'tanCenter'),
+      xmlCell(s.planTo,'tanCenter')
     ]));
   });
 
   rows2.push(xmlRow([xmlCell('','left',true)]));
   rows2.push(xmlRow([xmlCell('Всего по типам объектов','header',false,11)]));
-  rIdx = 0;
   TYPE_ORDER.forEach(code=>{
     const t = totalsByType[code];
     const pO = t.planOsm? t.factOsm/t.planOsm:0;
     const pT = t.planTo? t.factTo/t.planTo:0;
-    const even = (rIdx++ % 2 === 0);
     rows2.push(xmlRow([
-      xmlCell(code,'left',even),
-      xmlCell(t.count,'center',even),
-      xmlCell(t.planOsm,'center',even),
-      xmlCell(t.factOsm,'center',even),
-      xmlCell(Math.round(pO*100)+'%','pct',even,0,pO),
-      xmlCell(pctBar(pO),'pct',even,0,pO),
-      xmlCell(t.planTo,'center',even),
-      xmlCell(t.factTo,'center',even),
-      xmlCell(Math.round(pT*100)+'%','pct',even,0,pT),
-      xmlCell(pctBar(pT),'pct',even,0,pT),
-      xmlCell('','center',even),
-      xmlCell('','center',even)
+      xmlCell(code,'totalsLeft'),
+      xmlCell(t.count,'totalsCenter'),
+      xmlCell(t.planOsm,'totalsCenter'),
+      xmlCell(t.factOsm,'totalsCenter'),
+      xmlCell(Math.round(pO*100)+'%','totalsCenter'),
+      xmlCell(pctBar(pO),'pct',false,0,pO),
+      xmlCell(t.planTo,'totalsCenter'),
+      xmlCell(t.factTo,'totalsCenter'),
+      xmlCell(Math.round(pT*100)+'%','totalsCenter'),
+      xmlCell(pctBar(pT),'pct',false,0,pT),
+      xmlCell('','totalsCenter'),
+      xmlCell('','totalsCenter')
     ]));
   });
   rows2.push(xmlRow([xmlCell('Отчёт за период: ' + monthLabel + ' · выгружено ' + new Date().toLocaleString('ru-RU'), 'note', false, 11)]));
