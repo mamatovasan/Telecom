@@ -1277,7 +1277,7 @@ function pprOverallStats(months){
 function renderPPRSummary(){
   const s = pprOverallStats(pprMonthsInRange());
   document.getElementById('summaryPill').innerHTML =
-    'Осмотр: <b>' + s.yearPlanOsmotr + '/' + s.factOsmotr + '</b> — <b>' + Math.round(s.pctOsmotr*100) + '%</b> &nbsp;·&nbsp; ТО: <b>' + s.yearPlanTo + '/' + s.factTo + '</b> — <b>' + Math.round(s.pctTo*100) + '%</b>';
+    'Осмотр: <b>' + s.planOsmotr + '/' + s.factOsmotr + '</b> — <b>' + Math.round(s.pctOsmotr*100) + '%</b> &nbsp;·&nbsp; ТО: <b>' + s.planTo + '/' + s.factTo + '</b> — <b>' + Math.round(s.pctTo*100) + '%</b>';
 }
 
 function renderPPRTabs(){
@@ -1485,21 +1485,12 @@ function renderPPRJournal(panel){
     '</div>';
 }
 
-function xlsxThinBorder(){
-  return {
-    top:{style:'thin', color:{rgb:'B9C7D2'}},
-    bottom:{style:'thin', color:{rgb:'B9C7D2'}},
-    left:{style:'thin', color:{rgb:'B9C7D2'}},
-    right:{style:'thin', color:{rgb:'B9C7D2'}}
-  };
-}
-
 // Цвет по проценту выполнения: красный < 50%, жёлтый 50-79%, зелёный 80%+
 function pctColors(fraction){
   const pct = (fraction||0) * 100;
-  if(pct >= 80) return { fill:'DFF3E4', font:'1E7A44' };
-  if(pct >= 50) return { fill:'FFF3D6', font:'8A6100' };
-  return { fill:'FBE1DE', font:'A32F1F' };
+  if(pct >= 80) return 'Green';
+  if(pct >= 50) return 'Yellow';
+  return 'Red';
 }
 
 // Текстовая мини-диаграмма (прогресс-бар) из символов ▓/░, наглядно показывает % прямо в ячейке
@@ -1509,45 +1500,85 @@ function pctBar(fraction){
   return '▓'.repeat(filled) + '░'.repeat(10 - filled) + ' ' + pct + '%';
 }
 
-function styleSheetGrid(ws, headerRows, totalRows, totalCols, opts){
-  opts = opts || {};
-  const pctCols = opts.pctCols || []; // индексы колонок с процентами (0-based) — красим по значению
-  const barCols = opts.barCols || []; // индексы колонок с текстовой мини-диаграммой
-  const range = { s:{r:0,c:0}, e:{r:totalRows-1,c:totalCols-1} };
-  for(let R=range.s.r; R<=range.e.r; R++){
-    for(let C=range.s.c; C<=range.e.c; C++){
-      const ref = XLSX.utils.encode_cell({r:R,c:C});
-      if(!ws[ref]) ws[ref] = { t:'s', v:'' };
-      const isHeader = R < headerRows;
-      let fillColor = isHeader ? '024D78' : (R % 2 === 0 ? 'F2F8FD' : 'FFFFFF');
-      let fontColor = isHeader ? 'FFFFFF' : '16232E';
-      let bold = isHeader;
+function xmlEscape(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-      if(!isHeader && (pctCols.includes(C) || barCols.includes(C)) && typeof ws[ref].v === 'number'){
-        const colors = pctColors(ws[ref].v);
-        fillColor = colors.fill;
-        fontColor = colors.font;
-        bold = true;
-      }
-      if(!isHeader && barCols.includes(C) && typeof ws[ref].v === 'string'){
-        // цвет бара определяется по числу % внутри текста бара
-        const m = ws[ref].v.match(/(\d+)%/);
-        if(m){
-          const colors = pctColors(Number(m[1])/100);
-          fillColor = colors.fill;
-          fontColor = colors.font;
-          bold = true;
-        }
-      }
-
-      ws[ref].s = {
-        border: xlsxThinBorder(),
-        alignment: { vertical:'center', wrapText: true, horizontal: (C===0 ? 'left':'center') },
-        font: { bold: bold, color:{rgb: fontColor} },
-        fill: { patternType:'solid', fgColor:{rgb: fillColor} }
-      };
-    }
+// Ячейка для Excel XML (SpreadsheetML). kind: 'header' | 'left' | 'center' | 'pct' | 'note'
+// pctValue (0..1) — если задан, ячейка красится по проценту (зелёный/жёлтый/красный), игнорируя зебру.
+function xmlCell(value, kind, rowIsEven, mergeAcross, pctValue){
+  let styleId;
+  if(kind === 'header') styleId = 'Header';
+  else if(kind === 'note') styleId = 'Note';
+  else if(kind === 'pct' && pctValue != null){
+    styleId = pctColors(pctValue);
+  } else if(kind === 'left'){
+    styleId = rowIsEven ? 'ZebraEvenLeft' : 'ZebraOddLeft';
+  } else {
+    styleId = rowIsEven ? 'ZebraEvenCenter' : 'ZebraOddCenter';
   }
+  const isNumber = (typeof value === 'number');
+  const type = isNumber ? 'Number' : 'String';
+  const dataVal = isNumber ? value : xmlEscape(value == null ? '' : String(value));
+  const mergeAttr = mergeAcross ? ' ss:MergeAcross="' + mergeAcross + '"' : '';
+  return '<Cell ss:StyleID="' + styleId + '"' + mergeAttr + '><Data ss:Type="' + type + '">' + dataVal + '</Data></Cell>';
+}
+
+function xmlRow(cellsXml){
+  return '<Row>' + cellsXml.join('') + '</Row>';
+}
+
+const XLS_STYLES_XML =
+'<Styles>' +
+  '<Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#024D78" ss:Pattern="Solid"/>' +
+    '<Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="ZebraOddCenter"><Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="ZebraEvenCenter"><Interior ss:Color="#F2F8FD" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="ZebraOddLeft"><Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/><Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="ZebraEvenLeft"><Interior ss:Color="#F2F8FD" ss:Pattern="Solid"/><Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="Green"><Font ss:Bold="1" ss:Color="#1E7A44"/><Interior ss:Color="#DFF3E4" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="Yellow"><Font ss:Bold="1" ss:Color="#8A6100"/><Interior ss:Color="#FFF3D6" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="Red"><Font ss:Bold="1" ss:Color="#A32F1F"/><Interior ss:Color="#FBE1DE" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/>' +
+    '<Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B9C7D2"/></Borders></Style>' +
+  '<Style ss:ID="Note"><Font ss:Italic="1" ss:Color="#607284" ss:Size="9"/><Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>' +
+'</Styles>';
+
+function buildXlsWorksheetXml(name, colWidths, rowsXml){
+  const cols = colWidths.map(w => '<Column ss:Width="' + w + '"/>').join('');
+  return '<Worksheet ss:Name="' + xmlEscape(name) + '">' +
+    '<Table>' + cols + rowsXml.join('') + '</Table>' +
+    '<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><PageSetup><Header x:Margin="0.3"/><Footer x:Margin="0.3"/></PageSetup><FitToPage/><Print><FitWidth>1</FitWidth><FitHeight>32767</FitHeight></Print></WorksheetOptions>' +
+  '</Worksheet>';
+}
+
+function downloadXlsWorkbook(worksheetsXml, filename){
+  const xml =
+    '<?xml version="1.0"?>' +
+    '<?mso-application progid="Excel.Sheet"?>' +
+    '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ' +
+    'xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+    'xmlns:x="urn:schemas-microsoft-com:office:excel" ' +
+    'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" ' +
+    'xmlns:html="http://www.w3.org/TR/REC-html40">' +
+    XLS_STYLES_XML +
+    worksheetsXml.join('') +
+    '</Workbook>';
+  const blob = new Blob(['\ufeff' + xml], { type: 'application/vnd.ms-excel' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=> URL.revokeObjectURL(url), 2000);
 }
 
 async function exportPPRToExcel(){
@@ -1556,10 +1587,6 @@ async function exportPPRToExcel(){
   const TYPE_ORDER = ["РШ","ОРШ","РК","ОРК","КЯ","ПСУ","Опоры","МАД"];
   const monthLabel = pprPeriodLabel();
 
-  // ---- Отчёт 1: Свод по сети ----
-  const aoa1 = [];
-  aoa1.push(['Объекты ЛС','Общее количество','Осмотр','','','Диаграмма Осмотр','Техническое обслуживание','','','Диаграмма ТО']);
-  aoa1.push(['','объекты ЛС шт','план','факт','%','','план','факт','%','']);
   const totalsByType = {};
   TYPE_ORDER.forEach(code=>{ totalsByType[code] = {count:0, planOsm:0, factOsm:0, planTo:0, factTo:0}; });
   PPR_DISTRICTS.forEach((d,i)=>{
@@ -1575,69 +1602,129 @@ async function exportPPRToExcel(){
       });
     });
   });
+
+  // ---- Лист 1: Свод по сети ----
+  const rows1 = [];
+  rows1.push(xmlRow([
+    xmlCell('Объекты ЛС','header',false,0),
+    xmlCell('Общее количество','header',false,0),
+    xmlCell('Осмотр','header',false,2),
+    '','',
+    xmlCell('Диаграмма Осмотр','header',false,0),
+    xmlCell('Техническое обслуживание','header',false,2),
+    '','',
+    xmlCell('Диаграмма ТО','header',false,0)
+  ].filter(x=>x!=='')));
+  rows1.push(xmlRow([
+    xmlCell('','header',false,0),
+    xmlCell('объекты ЛС шт','header',false,0),
+    xmlCell('план','header',false,0),
+    xmlCell('факт','header',false,0),
+    xmlCell('%','header',false,0),
+    xmlCell('','header',false,0),
+    xmlCell('план','header',false,0),
+    xmlCell('факт','header',false,0),
+    xmlCell('%','header',false,0),
+    xmlCell('','header',false,0)
+  ]));
   let grand = {count:0, planOsm:0, factOsm:0, planTo:0, factTo:0};
+  let rIdx = 0;
   TYPE_ORDER.forEach(code=>{
     const t = totalsByType[code];
     const pO = t.planOsm? t.factOsm/t.planOsm:0;
     const pT = t.planTo? t.factTo/t.planTo:0;
-    aoa1.push([code, t.count, t.planOsm, t.factOsm, pO, pctBar(pO), t.planTo, t.factTo, pT, pctBar(pT)]);
+    const even = (rIdx++ % 2 === 0);
+    rows1.push(xmlRow([
+      xmlCell(code,'left',even),
+      xmlCell(t.count,'center',even),
+      xmlCell(t.planOsm,'center',even),
+      xmlCell(t.factOsm,'center',even),
+      xmlCell(Math.round(pO*100)+'%','pct',even,0,pO),
+      xmlCell(pctBar(pO),'pct',even,0,pO),
+      xmlCell(t.planTo,'center',even),
+      xmlCell(t.factTo,'center',even),
+      xmlCell(Math.round(pT*100)+'%','pct',even,0,pT),
+      xmlCell(pctBar(pT),'pct',even,0,pT)
+    ]));
     grand.count+=t.count; grand.planOsm+=t.planOsm; grand.factOsm+=t.factOsm; grand.planTo+=t.planTo; grand.factTo+=t.factTo;
   });
   const grandPO = grand.planOsm? grand.factOsm/grand.planOsm:0;
   const grandPT = grand.planTo? grand.factTo/grand.planTo:0;
-  aoa1.push(['Итого', grand.count, grand.planOsm, grand.factOsm, grandPO, pctBar(grandPO), grand.planTo, grand.factTo, grandPT, pctBar(grandPT)]);
+  rows1.push(xmlRow([
+    xmlCell('Итого','left',true),
+    xmlCell(grand.count,'center',true),
+    xmlCell(grand.planOsm,'center',true),
+    xmlCell(grand.factOsm,'center',true),
+    xmlCell(Math.round(grandPO*100)+'%','pct',true,0,grandPO),
+    xmlCell(pctBar(grandPO),'pct',true,0,grandPO),
+    xmlCell(grand.planTo,'center',true),
+    xmlCell(grand.factTo,'center',true),
+    xmlCell(Math.round(grandPT*100)+'%','pct',true,0,grandPT),
+    xmlCell(pctBar(grandPT),'pct',true,0,grandPT)
+  ]));
 
-  const ws1 = XLSX.utils.aoa_to_sheet(aoa1);
-  ws1['!cols'] = [{wch:16},{wch:14},{wch:9},{wch:9},{wch:8},{wch:16},{wch:9},{wch:9},{wch:8},{wch:16}];
-  ws1['!merges'] = [
-    { s:{r:0,c:2}, e:{r:0,c:4} },
-    { s:{r:0,c:6}, e:{r:0,c:8} }
-  ];
-  ['E','I'].forEach(col=>{
-    for(let r=3;r<=aoa1.length;r++){
-      const ref = col + r;
-      if(ws1[ref] && typeof ws1[ref].v === 'number') ws1[ref].z = '0%';
-    }
-  });
-  styleSheetGrid(ws1, 2, aoa1.length, 10, { pctCols:[4,8], barCols:[5,9] });
+  const ws1xml = buildXlsWorksheetXml('Свод по сети', [110,90,60,60,55,110,60,60,55,110], rows1);
 
-  // ---- Отчёт 2: По подразделениям ----
-  const aoa2 = [];
-  aoa2.push(['Подразделение','Общее кол-во объектов ЛС, шт.','План за период (Осмотр)','Выполнено осмотров','% выполнения осмотра','Диаграмма Осмотр','План за период (ТО)','Выполнено ТО','% выполнения ТО','Диаграмма ТО','Утв. план за ' + monthLabel + ' (Осмотр)','Утв. план за ' + monthLabel + ' (ТО)']);
+  // ---- Лист 2: По подразделениям ----
+  const rows2 = [];
+  rows2.push(xmlRow([
+    'Подразделение','Общее кол-во объектов ЛС, шт.','План за период (Осмотр)','Выполнено осмотров','% выполнения осмотра',
+    'Диаграмма Осмотр','План за период (ТО)','Выполнено ТО','% выполнения ТО','Диаграмма ТО',
+    'Утв. план за ' + monthLabel + ' (Осмотр)','Утв. план за ' + monthLabel + ' (ТО)'
+  ].map(t => xmlCell(t,'header',false))));
+
+  rIdx = 0;
   PPR_DISTRICTS.forEach((d,i)=>{
     const s = pprDistrictStats(i, months);
     const totalCount = d.objectTypes.reduce((a,ot)=> a + (Number(ot.totalCount)||0), 0);
     const pO = s.planOsmotr? s.factOsmotr/s.planOsmotr:0;
     const pT = s.planTo? s.factTo/s.planTo:0;
-    aoa2.push([d.district, totalCount, s.planOsmotr, s.factOsmotr, pO, pctBar(pO), s.planTo, s.factTo, pT, pctBar(pT), s.planOsmotr, s.planTo]);
+    const even = (rIdx++ % 2 === 0);
+    rows2.push(xmlRow([
+      xmlCell(d.district,'left',even),
+      xmlCell(totalCount,'center',even),
+      xmlCell(s.planOsmotr,'center',even),
+      xmlCell(s.factOsmotr,'center',even),
+      xmlCell(Math.round(pO*100)+'%','pct',even,0,pO),
+      xmlCell(pctBar(pO),'pct',even,0,pO),
+      xmlCell(s.planTo,'center',even),
+      xmlCell(s.factTo,'center',even),
+      xmlCell(Math.round(pT*100)+'%','pct',even,0,pT),
+      xmlCell(pctBar(pT),'pct',even,0,pT),
+      xmlCell(s.planOsmotr,'center',even),
+      xmlCell(s.planTo,'center',even)
+    ]));
   });
-  const districtRowsEnd = aoa2.length;
-  aoa2.push(['','','','','','','','','','','','']);
-  aoa2.push(['Всего по типам объектов','','','','','','','','','','','']);
+
+  rows2.push(xmlRow([xmlCell('','left',true)]));
+  rows2.push(xmlRow([xmlCell('Всего по типам объектов','header',false,11)]));
+  rIdx = 0;
   TYPE_ORDER.forEach(code=>{
     const t = totalsByType[code];
     const pO = t.planOsm? t.factOsm/t.planOsm:0;
     const pT = t.planTo? t.factTo/t.planTo:0;
-    aoa2.push([code, t.count, t.planOsm, t.factOsm, pO, pctBar(pO), t.planTo, t.factTo, pT, pctBar(pT), '', '']);
+    const even = (rIdx++ % 2 === 0);
+    rows2.push(xmlRow([
+      xmlCell(code,'left',even),
+      xmlCell(t.count,'center',even),
+      xmlCell(t.planOsm,'center',even),
+      xmlCell(t.factOsm,'center',even),
+      xmlCell(Math.round(pO*100)+'%','pct',even,0,pO),
+      xmlCell(pctBar(pO),'pct',even,0,pO),
+      xmlCell(t.planTo,'center',even),
+      xmlCell(t.factTo,'center',even),
+      xmlCell(Math.round(pT*100)+'%','pct',even,0,pT),
+      xmlCell(pctBar(pT),'pct',even,0,pT),
+      xmlCell('','center',even),
+      xmlCell('','center',even)
+    ]));
   });
-  aoa2.push(['','','','','','','','','','','','']);
-  aoa2.push(['Отчёт за период: ' + monthLabel + ' · выгружено ' + new Date().toLocaleString('ru-RU'),'','','','','','','','','','','']);
+  rows2.push(xmlRow([xmlCell('Отчёт за период: ' + monthLabel + ' · выгружено ' + new Date().toLocaleString('ru-RU'), 'note', false, 11)]));
 
-  const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
-  ws2['!cols'] = [{wch:22},{wch:16},{wch:14},{wch:12},{wch:10},{wch:16},{wch:12},{wch:12},{wch:10},{wch:16},{wch:16},{wch:16}];
-  ['E','I'].forEach(col=>{
-    for(let r=2;r<=districtRowsEnd;r++){
-      const ref = col + r;
-      if(ws2[ref] && typeof ws2[ref].v === 'number') ws2[ref].z = '0%';
-    }
-  });
-  styleSheetGrid(ws2, 1, aoa2.length, 12, { pctCols:[4,8], barCols:[5,9] });
+  const ws2xml = buildXlsWorksheetXml('По подразделениям', [140,90,90,80,70,110,80,80,70,110,110,110], rows2);
 
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws1, 'Свод по сети');
-  XLSX.utils.book_append_sheet(wb, ws2, 'По подразделениям');
   const fileSafeLabel = monthLabel.replace(/[^\wа-яА-Я0-9]+/g, '_');
-  XLSX.writeFile(wb, 'ППР_Отчет_' + fileSafeLabel + '.xlsx', { cellStyles: true });
+  downloadXlsWorkbook([ws1xml, ws2xml], 'ППР_Отчет_' + fileSafeLabel + '.xls');
 }
 
 // ---- Импорт факта из выгрузки программного комплекса ----
