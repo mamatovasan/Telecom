@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0055)file:///C:/Users/Lenovo/Downloads/otchet_tr_2026_2.html -->
+<html lang="ru"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Отчёт по текущему ремонту 2026 — Актюбинский ДЭСД</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="./index_files/xlsx.full.min.js"></script>
+<script src="./index_files/pptxgen.bundle.js"></script>
 <style>
   :root{
     --bg: #e7f2fb;
@@ -516,29 +516,33 @@
 </div>
 
 <div class="toolbar">
-  <div class="summary-pill" id="summaryPill">Загрузка данных…</div>
+  <div class="summary-pill" id="summaryPill">Выполнено: <b>8.3 из 58</b> объектов &nbsp;·&nbsp; <b>14%</b></div>
   <div id="pprMonthPicker" style="display:none; align-items:center; gap:8px;">
     <label style="font-size:12.5px; color:var(--muted); font-weight:600;">Период:</label>
-    <select id="pprPeriodStartSelect"></select>
+    <select id="pprPeriodStartSelect"><option value="1">Январь</option><option value="2">Февраль</option><option value="3">Март</option><option value="4">Апрель</option><option value="5">Май</option><option value="6">Июнь</option><option value="7">Июль</option><option value="8">Август</option><option value="9">Сентябрь</option><option value="10">Октябрь</option><option value="11">Ноябрь</option><option value="12">Декабрь</option></select>
     <span style="color:var(--muted); font-size:12.5px;">—</span>
-    <select id="pprPeriodEndSelect"></select>
+    <select id="pprPeriodEndSelect"><option value="1">Январь</option><option value="2">Февраль</option><option value="3">Март</option><option value="4">Апрель</option><option value="5">Май</option><option value="6">Июнь</option><option value="7">Июль</option><option value="8">Август</option><option value="9">Сентябрь</option><option value="10">Октябрь</option><option value="11">Ноябрь</option><option value="12">Декабрь</option></select>
   </div>
   <button class="export-btn" id="pprImportBtn" style="display:none; background:var(--kt);">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M4 21h16"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9"></path><path d="M7 14l5-5 5 5"></path><path d="M4 21h16"></path></svg>
     Импорт из выгрузки
   </button>
   <input type="file" id="pprImportFile" accept=".xlsx,.xlsm" style="display:none;">
   <button class="export-btn" id="exportBtn">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M4 21h16"></path></svg>
     Выгрузить отчёт (Excel)
   </button>
   <button class="export-btn" id="pprPptxBtn" style="display:none; background:#7A4FC9;">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="1.5"></rect><path d="M8 21h8"></path><path d="M12 17v4"></path></svg>
+    Экспорт в PowerPoint
+  </button>
+  <button class="export-btn" id="trPptxBtn" style="background:#7A4FC9;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="1.5"></rect><path d="M8 21h8"></path><path d="M12 17v4"></path></svg>
     Экспорт в PowerPoint
   </button>
 </div>
 
-<div class="tabs" id="tabsBar"></div>
+<div class="tabs" id="tabsBar"><button class="tab-btn active" data-tab="overview">Обзор</button><button class="tab-btn " data-tab="0">ЛКЦ<span class="tab-badge mid">34%</span></button><button class="tab-btn " data-tab="1">Алгинский ЛТЦ<span class="tab-badge ">0%</span></button><button class="tab-btn " data-tab="2">Кобдинский ЛТЦ<span class="tab-badge mid">20%</span></button><button class="tab-btn " data-tab="3">Уилский ЛТУ Кобдинского ЛТЦ<span class="tab-badge ">0%</span></button><button class="tab-btn " data-tab="4">Темирский ЛТЦ<span class="tab-badge mid">50%</span></button><button class="tab-btn " data-tab="5">Байганинский ЛТУ Темирского ЛТЦ<span class="tab-badge ">0%</span></button><button class="tab-btn " data-tab="6">Мугалжарский ЛТЦ<span class="tab-badge ">0%</span></button><button class="tab-btn " data-tab="7">Эмбенский ЛТУ Мугалжарского ЛТЦ<span class="tab-badge ">0%</span></button><button class="tab-btn " data-tab="8">Шалкарский ЛТЦ<span class="tab-badge ">0%</span></button><button class="tab-btn " data-tab="9">Иргизский ЛТУ Шалкарского ЛТЦ<span class="tab-badge ">0%</span></button><button class="tab-btn " data-tab="10">Айтекебийский ЛТУ Хромтауского ЛТЦ<span class="tab-badge ">0%</span></button><button class="tab-btn " data-tab="11">Каргалинский ЛТЦ<span class="tab-badge ">0%</span></button><button class="tab-btn " data-tab="12">Хромтауский ЛТЦ<span class="tab-badge mid">6%</span></button><button class="tab-btn " data-tab="13">Мартукский ЛТЦ<span class="tab-badge mid">20%</span></button></div>
 
 <div id="storageWarning" style="display:none; max-width:1180px; margin:14px auto 0 auto; padding:0 16px;">
   <div style="background:#fff3e0; border:1.5px solid #f0b84f; color:#7a4a00; border-radius:10px; padding:14px 18px; font-size:13.5px; line-height:1.5;">
@@ -548,9 +552,7 @@
 </div>
 
 <main>
-  <div class="panel" id="panelContent">
-    <p class="sub">Загрузка…</p>
-  </div>
+  <div class="panel" id="panelContent"><h2>Общий прогресс по районам</h2><p class="sub">Актюбинский ДЭСД · план текущего ремонта на 2026 год · нажмите на карточку района, чтобы открыть отчёт</p><div class="shared-note">Данные отчёта хранятся в общей Google Таблице — все, кто пользуется этим сайтом, видят и обновляют один и тот же отчёт.</div><div class="lock-note">🔒 Заполнение отчёта заблокировано. Чтобы вносить данные, нажмите «Код для заполнения» вверху и введите код, полученный от администратора.</div><div class="ppr-chart-block"><div class="ppr-chart-head"><h3>Диаграмма по районам — Текущий ремонт 2026</h3><button type="button" id="trChartDownloadBtn" class="export-btn" style="padding:8px 14px; font-size:12.5px;">📷 Скачать диаграмму (PNG)</button></div><div id="trChartWrap"><svg viewBox="0 0 720 432" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="background:#fff; font-family:Segoe UI, Arial, sans-serif;"><rect x="0" y="0" width="720" height="432" fill="#FFFFFF"></rect><text x="0" y="23" font-size="11" fill="#16232E">ЛКЦ ЦТО МС</text><rect x="190" y="10" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="10" width="137.77777777777777" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="23" font-size="10.5" font-weight="700" fill="#16232E">34%</text><text x="0" y="51" font-size="11" fill="#16232E">Алгинский ЛТЦ ЦТО МС</text><rect x="190" y="38" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="38" width="2" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="51" font-size="10.5" font-weight="700" fill="#16232E">0%</text><text x="0" y="79" font-size="11" fill="#16232E">Кобдинский ЛТЦ ЦТО МС</text><rect x="190" y="66" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="66" width="80" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="79" font-size="10.5" font-weight="700" fill="#16232E">20%</text><text x="0" y="107" font-size="11" fill="#16232E">Уилский ЛТУ Кобдинского ЛТЦ ЦТО МС</text><rect x="190" y="94" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="94" width="2" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="107" font-size="10.5" font-weight="700" fill="#16232E">0%</text><text x="0" y="135" font-size="11" fill="#16232E">Темирский ЛТЦ</text><rect x="190" y="122" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="122" width="200" height="18" fill="#e0ac16" rx="3"></rect><text x="598" y="135" font-size="10.5" font-weight="700" fill="#16232E">50%</text><text x="0" y="163" font-size="11" fill="#16232E">Байганинский ЛТУ Темирского ЛТЦ ЦТО МС</text><rect x="190" y="150" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="150" width="2" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="163" font-size="10.5" font-weight="700" fill="#16232E">0%</text><text x="0" y="191" font-size="11" fill="#16232E">Мугалжарский ЛТЦ ЦТО МС</text><rect x="190" y="178" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="178" width="2" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="191" font-size="10.5" font-weight="700" fill="#16232E">0%</text><text x="0" y="219" font-size="11" fill="#16232E">Эмбенский ЛТУ Мугалжарского ЛТЦ ЦТО МС</text><rect x="190" y="206" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="206" width="2" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="219" font-size="10.5" font-weight="700" fill="#16232E">0%</text><text x="0" y="247" font-size="11" fill="#16232E">Шалкарский ЛТЦ ЦТО МС</text><rect x="190" y="234" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="234" width="2" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="247" font-size="10.5" font-weight="700" fill="#16232E">0%</text><text x="0" y="275" font-size="11" fill="#16232E">Иргизский ЛТУ Шалкарского ЛТЦ ЦТО МС</text><rect x="190" y="262" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="262" width="2" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="275" font-size="10.5" font-weight="700" fill="#16232E">0%</text><text x="0" y="303" font-size="11" fill="#16232E">Айтекебийский ЛТУ Хромтауского ЛТЦ ЦТО МС</text><rect x="190" y="290" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="290" width="2" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="303" font-size="10.5" font-weight="700" fill="#16232E">0%</text><text x="0" y="331" font-size="11" fill="#16232E">Каргалинский ЛТЦ ЦТО МС</text><rect x="190" y="318" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="318" width="2" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="331" font-size="10.5" font-weight="700" fill="#16232E">0%</text><text x="0" y="359" font-size="11" fill="#16232E">Хромтауский ЛТЦ ЦТО МС</text><rect x="190" y="346" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="346" width="24" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="359" font-size="10.5" font-weight="700" fill="#16232E">6%</text><text x="0" y="387" font-size="11" fill="#16232E">Мартукский ЛТЦ ЦТО МС</text><rect x="190" y="374" width="400" height="18" fill="#EEF3F8" rx="3"></rect><rect x="190" y="374" width="80" height="18" fill="#e0522b" rx="3"></rect><text x="598" y="387" font-size="10.5" font-weight="700" fill="#16232E">20%</text><g transform="translate(190,410)"><rect x="0" y="0" width="12" height="12" fill="#2f9e5f" rx="2"></rect><text x="16" y="10" font-size="10.5" fill="#16232E">80%+</text><rect x="70" y="0" width="12" height="12" fill="#e0ac16" rx="2"></rect><text x="86" y="10" font-size="10.5" fill="#16232E">50-79%</text><rect x="150" y="0" width="12" height="12" fill="#e0522b" rx="2"></rect><text x="166" y="10" font-size="10.5" fill="#16232E">&lt;50%</text></g></svg></div></div><div class="ov-grid"><div class="ov-card" data-goto="0"><div class="name">ЛКЦ ЦТО МС</div><div class="count">9 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:34.44444444444444%"></div></div><div class="pct">34%</div></div><div class="ov-card" data-goto="1"><div class="name">Алгинский ЛТЦ ЦТО МС</div><div class="count">3 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="pct">0%</div></div><div class="ov-card" data-goto="2"><div class="name">Кобдинский ЛТЦ ЦТО МС</div><div class="count">5 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:20%"></div></div><div class="pct">20%</div></div><div class="ov-card" data-goto="3"><div class="name">Уилский ЛТУ Кобдинского ЛТЦ ЦТО МС</div><div class="count">3 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="pct">0%</div></div><div class="ov-card" data-goto="4"><div class="name">Темирский ЛТЦ</div><div class="count">6 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div><div class="pct">50%</div></div><div class="ov-card" data-goto="5"><div class="name">Байганинский ЛТУ Темирского ЛТЦ ЦТО МС</div><div class="count">5 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="pct">0%</div></div><div class="ov-card" data-goto="6"><div class="name">Мугалжарский ЛТЦ ЦТО МС</div><div class="count">3 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="pct">0%</div></div><div class="ov-card" data-goto="7"><div class="name">Эмбенский ЛТУ Мугалжарского ЛТЦ ЦТО МС</div><div class="count">6 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="pct">0%</div></div><div class="ov-card" data-goto="8"><div class="name">Шалкарский ЛТЦ ЦТО МС</div><div class="count">3 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="pct">0%</div></div><div class="ov-card" data-goto="9"><div class="name">Иргизский ЛТУ Шалкарского ЛТЦ ЦТО МС</div><div class="count">3 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="pct">0%</div></div><div class="ov-card" data-goto="10"><div class="name">Айтекебийский ЛТУ Хромтауского ЛТЦ ЦТО МС</div><div class="count">2 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="pct">0%</div></div><div class="ov-card" data-goto="11"><div class="name">Каргалинский ЛТЦ ЦТО МС</div><div class="count">2 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="pct">0%</div></div><div class="ov-card" data-goto="12"><div class="name">Хромтауский ЛТЦ ЦТО МС</div><div class="count">3 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:6%"></div></div><div class="pct">6%</div></div><div class="ov-card" data-goto="13"><div class="name">Мартукский ЛТЦ ЦТО МС</div><div class="count">5 объект(ов)</div><div class="bar-track"><div class="bar-fill" style="width:20%"></div></div><div class="pct">20%</div></div></div></div>
 </main>
 
 <div class="save-flash" id="saveFlash">Сохранено</div>
@@ -809,6 +811,7 @@ document.querySelectorAll('.mode-btn').forEach(btn=>{
     document.getElementById('pprMonthPicker').style.display = (appMode === 'ppr') ? 'flex' : 'none';
     document.getElementById('pprImportBtn').style.display = (appMode === 'ppr') ? 'inline-flex' : 'none';
     document.getElementById('pprPptxBtn').style.display = (appMode === 'ppr') ? 'inline-flex' : 'none';
+    document.getElementById('trPptxBtn').style.display = (appMode === 'tr') ? 'inline-flex' : 'none';
     if(appMode === 'ppr'){
       pprActiveTab = 'overview';
       ensurePPRDataLoaded().then(()=>{ renderTabs(); renderPanel(); renderSummary(); });
@@ -942,7 +945,40 @@ function buildPPRChartSVG(months){
     '</svg>';
 }
 
-// Конвертирует SVG-элемент в PNG и запускает скачивание (надёжный способ без внешних библиотек).
+// Диаграмма по районам для ТР (использует уже существующие districtStats/overallStats, ничего в них не меняя)
+function buildTRChartSVG(){
+  const rows = DISTRICTS.map((d,i)=>{
+    const s = districtStats(i);
+    return { name: d.district, pct: s.pct };
+  });
+  const barH = 18, rowGap = 10;
+  const chartX = 190, barMaxW = 400, viewW = 720;
+  const topPad = 10;
+  let y = topPad;
+  let bars = '';
+  rows.forEach(r=>{
+    const w = Math.max(2, Math.min(1, r.pct) * barMaxW);
+    const color = chartBarColor(r.pct);
+    bars += '<text x="0" y="' + (y + barH - 5) + '" font-size="11" fill="#16232E">' + escapeHtml(r.name) + '</text>';
+    bars += '<rect x="' + chartX + '" y="' + y + '" width="' + barMaxW + '" height="' + barH + '" fill="#EEF3F8" rx="3"/>';
+    bars += '<rect x="' + chartX + '" y="' + y + '" width="' + w + '" height="' + barH + '" fill="' + color + '" rx="3"/>';
+    bars += '<text x="' + (chartX + barMaxW + 8) + '" y="' + (y + barH - 5) + '" font-size="10.5" font-weight="700" fill="#16232E">' + Math.round(r.pct*100) + '%</text>';
+    y += barH + rowGap;
+  });
+  const viewH = y + 30;
+
+  let legend = '<g transform="translate(' + chartX + ',' + (viewH - 22) + ')">' +
+    '<rect x="0" y="0" width="12" height="12" fill="#2f9e5f" rx="2"/><text x="16" y="10" font-size="10.5" fill="#16232E">80%+</text>' +
+    '<rect x="70" y="0" width="12" height="12" fill="#e0ac16" rx="2"/><text x="86" y="10" font-size="10.5" fill="#16232E">50-79%</text>' +
+    '<rect x="150" y="0" width="12" height="12" fill="#e0522b" rx="2"/><text x="166" y="10" font-size="10.5" fill="#16232E">&lt;50%</text>' +
+    '</g>';
+
+  return '<svg viewBox="0 0 ' + viewW + ' ' + viewH + '" width="100%" height="auto" ' +
+    'xmlns="http://www.w3.org/2000/svg" style="background:#fff; font-family:Segoe UI, Arial, sans-serif;">' +
+    '<rect x="0" y="0" width="' + viewW + '" height="' + viewH + '" fill="#FFFFFF"/>' +
+    bars + legend +
+    '</svg>';
+}
 function downloadSvgAsPng(svgEl, filename){
   const svgClone = svgEl.cloneNode(true);
   const vb = svgEl.viewBox && svgEl.viewBox.baseVal;
@@ -1009,7 +1045,22 @@ function renderTRPanel(){
       '<div class="shared-note">Данные отчёта хранятся в общей Google Таблице — все, кто пользуется этим сайтом, видят и обновляют один и тот же отчёт.</div>' +
       (!canEdit() ? '<div class="lock-note">🔒 Заполнение отчёта заблокировано. Чтобы вносить данные, нажмите «Код для заполнения» вверху и введите код, полученный от администратора.</div>' : '') +
       (isAdmin ? adminEditCodePanel() : '') +
+      '<div class="ppr-chart-block">' +
+        '<div class="ppr-chart-head">' +
+          '<h3>Диаграмма по районам — Текущий ремонт 2026</h3>' +
+          '<button type="button" id="trChartDownloadBtn" class="export-btn" style="padding:8px 14px; font-size:12.5px;">📷 Скачать диаграмму (PNG)</button>' +
+        '</div>' +
+        '<div id="trChartWrap">' + buildTRChartSVG() + '</div>' +
+      '</div>' +
       '<div class="ov-grid">' + cards + '</div>';
+
+    const trChartDownloadBtn = panel.querySelector('#trChartDownloadBtn');
+    if(trChartDownloadBtn){
+      trChartDownloadBtn.addEventListener('click', ()=>{
+        const svgEl = panel.querySelector('#trChartWrap svg');
+        if(svgEl) downloadSvgAsPng(svgEl, 'ТР_диаграмма_2026.png');
+      });
+    }
     panel.querySelectorAll('.ov-card').forEach(card=>{
       card.addEventListener('click', ()=>{
         activeTab = card.getAttribute('data-goto');
@@ -2007,6 +2058,50 @@ async function handlePPRImportFile(e){
 }
 
 document.getElementById('pprPptxBtn').addEventListener('click', exportPPRToPptx);
+document.getElementById('trPptxBtn').addEventListener('click', exportTRToPptx);
+
+// ==== Общие функции современного оформления презентаций (используются и ТР, и ППР) ====
+
+function pptxSetup(pres){
+  pres.defineLayout({ name: 'CUSTOM_16x9', width: 10, height: 5.63 });
+  pres.layout = 'CUSTOM_16x9';
+}
+
+function pptxLogoSrc(){
+  const headerImg = document.querySelector('header img');
+  return headerImg ? headerImg.src : null;
+}
+
+// Современный титульный слайд: тёмно-синий фон, диагональный акцент, логотип, нижняя полоса.
+function addModernTitleSlide(pres, titleText, subtitleLines){
+  const slide = pres.addSlide();
+  slide.background = { color: '0B2A43' };
+  slide.addShape(pres.ShapeType.rect, { x: 6.7, y: 0, w: 3.3, h: 5.63, fill: { color: '123A5C' }, line: { color: '123A5C' } });
+  slide.addShape(pres.ShapeType.rect, { x: 7.6, y: 0, w: 0.06, h: 5.63, fill: { color: '4EA1E8' }, line: { color: '4EA1E8' } });
+  slide.addShape(pres.ShapeType.rect, { x: 0, y: 5.18, w: 10, h: 0.45, fill: { color: '4472C4' }, line: { color: '4472C4' } });
+
+  const logoSrc = pptxLogoSrc();
+  if(logoSrc){
+    slide.addShape(pres.ShapeType.roundRect, { x: 0.45, y: 0.4, w: 1.7, h: 0.68, fill: { color: 'FFFFFF' }, line: { color: 'FFFFFF' }, rectRadius: 0.08 });
+    slide.addImage({ data: logoSrc, x: 0.58, y: 0.5, w: 1.44, h: 0.5 });
+  }
+  slide.addText(titleText, { x: 0.5, y: 1.9, w: 6.9, h: 1.1, fontSize: 34, bold: true, color: 'FFFFFF', fontFace: 'Calibri' });
+  let ly = 2.95;
+  subtitleLines.forEach(line=>{
+    slide.addText(line, { x: 0.5, y: ly, w: 6.9, h: 0.4, fontSize: 14.5, color: 'AFC6DD', fontFace: 'Calibri' });
+    ly += 0.42;
+  });
+  slide.addText('Сформировано: ' + new Date().toLocaleString('ru-RU'), { x: 0.5, y: 5.24, w: 6.9, h: 0.32, fontSize: 9.5, color: 'EAF3FF', fontFace: 'Calibri' });
+  return slide;
+}
+
+// Заголовок-плашка для внутренних слайдов (диаграмма/таблица) — единый стиль.
+function addSlideHeaderBar(pres, slide, titleText){
+  slide.background = { color: 'F4F9FD' };
+  slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: 10, h: 0.78, fill: { color: '0B2A43' }, line: { color: '0B2A43' } });
+  slide.addShape(pres.ShapeType.rect, { x: 0, y: 0.78, w: 10, h: 0.05, fill: { color: '4EA1E8' }, line: { color: '4EA1E8' } });
+  slide.addText(titleText, { x: 0.4, y: 0.08, w: 9.2, h: 0.6, fontSize: 19, bold: true, color: 'FFFFFF', fontFace: 'Calibri', valign: 'middle' });
+}
 
 async function exportPPRToPptx(){
   if(typeof PptxGenJS === 'undefined'){
@@ -2018,24 +2113,11 @@ async function exportPPRToPptx(){
   const label = pprPeriodLabel();
 
   const pres = new PptxGenJS();
-  pres.defineLayout({ name: 'CUSTOM_16x9', width: 10, height: 5.63 });
-  pres.layout = 'CUSTOM_16x9';
+  pptxSetup(pres);
 
-  const headerImg = document.querySelector('header img');
-  const logoSrc = headerImg ? headerImg.src : null;
+  addModernTitleSlide(pres, 'Отчёт по ППР', ['Актюбинский ДЭСД · ЦТО МС', 'Период: ' + label]);
 
-  // ---- Слайд 1: титульный ----
-  const slide1 = pres.addSlide();
-  slide1.background = { color: 'E7F2FB' };
-  if(logoSrc){
-    slide1.addImage({ data: logoSrc, x: 0.4, y: 0.4, w: 1.4, h: 0.55 });
-  }
-  slide1.addText('Отчёт по ППР', { x: 0.4, y: 1.5, w: 9.2, h: 0.8, fontSize: 34, bold: true, color: '024D78', fontFace: 'Calibri' });
-  slide1.addText('Актюбинский ДЭСД · ЦТО МС', { x: 0.4, y: 2.3, w: 9.2, h: 0.4, fontSize: 16, color: '607284', fontFace: 'Calibri' });
-  slide1.addText('Период: ' + label, { x: 0.4, y: 2.7, w: 9.2, h: 0.4, fontSize: 16, color: '607284', fontFace: 'Calibri' });
-  slide1.addText('Сформировано: ' + new Date().toLocaleString('ru-RU'), { x: 0.4, y: 5.1, w: 9.2, h: 0.3, fontSize: 10, color: '9AA7B0', fontFace: 'Calibri' });
-
-  // ---- Слайд 2: диаграмма по районам ----
+  // ---- Слайд: диаграмма по районам ----
   const catLabels = PPR_DISTRICTS.map(d => shortName(d.district));
   const osmData = [], toData = [];
   PPR_DISTRICTS.forEach((d,i)=>{
@@ -2049,9 +2131,9 @@ async function exportPPRToPptx(){
   ];
 
   const slide2 = pres.addSlide();
-  slide2.addText('Выполнение по районам — ' + label, { x: 0.4, y: 0.2, w: 9.2, h: 0.5, fontSize: 20, bold: true, color: '024D78', fontFace: 'Calibri' });
+  addSlideHeaderBar(pres, slide2, 'Выполнение по районам — ' + label);
   slide2.addChart(pres.ChartType.bar, chartData, {
-    x: 0.3, y: 0.75, w: 9.4, h: 4.65,
+    x: 0.3, y: 1.0, w: 9.4, h: 4.4,
     barDir: 'bar',
     catAxisLabelFontSize: 8,
     valAxisMaxVal: 100,
@@ -2062,9 +2144,9 @@ async function exportPPRToPptx(){
     chartColors: ['1F77B4', '2F9E5F']
   });
 
-  // ---- Слайд(ы) 3: таблица по районам ----
+  // ---- Слайд(ы): таблица по районам ----
   const slide3 = pres.addSlide();
-  slide3.addText('Данные по районам — ' + label, { x: 0.4, y: 0.2, w: 9.2, h: 0.5, fontSize: 20, bold: true, color: '024D78', fontFace: 'Calibri' });
+  addSlideHeaderBar(pres, slide3, 'Данные по районам — ' + label);
   const headerOpts = { bold: true, fill: '024D78', color: 'FFFFFF', fontSize: 9, valign: 'middle' };
   const tableRows = [[
     { text: 'Район', options: headerOpts },
@@ -2088,7 +2170,7 @@ async function exportPPRToPptx(){
     ]);
   });
   slide3.addTable(tableRows, {
-    x: 0.3, y: 0.75, w: 9.4,
+    x: 0.3, y: 1.0, w: 9.4,
     autoPage: true,
     border: { type: 'solid', color: 'B9C7D2', pt: 0.5 },
     fontFace: 'Calibri'
@@ -2103,7 +2185,81 @@ async function exportPPRToPptx(){
   }
 }
 
+// Экспорт ТР (Текущий ремонт) в PowerPoint — не меняет никакие расчёты ТР,
+// использует уже существующие districtStats()/overallStats() как есть.
+async function exportTRToPptx(){
+  if(typeof PptxGenJS === 'undefined'){
+    alert('Не удалось загрузить библиотеку для PowerPoint. Проверьте подключение к интернету и попробуйте ещё раз.');
+    return;
+  }
+
+  const pres = new PptxGenJS();
+  pptxSetup(pres);
+
+  const overall = overallStats();
+  addModernTitleSlide(pres, 'Отчёт по текущему ремонту', [
+    'Актюбинский ДЭСД · ЦТО МС',
+    '2026 год · выполнено ' + overall.sumAll.toFixed(1) + ' из ' + overall.totalAll + ' объектов (' + Math.round(overall.pct*100) + '%)'
+  ]);
+
+  // ---- Слайд: диаграмма по районам ----
+  const catLabels = DISTRICTS.map(d => shortName(d.district));
+  const pctData = [];
+  DISTRICTS.forEach((d,i)=>{
+    const s = districtStats(i);
+    pctData.push(Math.round(s.pct*100));
+  });
+  const chartData = [{ name: 'Выполнено, %', labels: catLabels, values: pctData }];
+
+  const slide2 = pres.addSlide();
+  addSlideHeaderBar(pres, slide2, 'Выполнение по районам — ТР 2026');
+  slide2.addChart(pres.ChartType.bar, chartData, {
+    x: 0.3, y: 1.0, w: 9.4, h: 4.4,
+    barDir: 'bar',
+    catAxisLabelFontSize: 8,
+    valAxisMaxVal: 100,
+    showLegend: false,
+    showValue: true,
+    dataLabelFontSize: 8,
+    chartColors: ['1F77B4']
+  });
+
+  // ---- Слайд(ы): таблица по районам ----
+  const slide3 = pres.addSlide();
+  addSlideHeaderBar(pres, slide3, 'Данные по районам — ТР 2026');
+  const headerOpts = { bold: true, fill: '024D78', color: 'FFFFFF', fontSize: 10, valign: 'middle' };
+  const tableRows = [[
+    { text: 'Район', options: headerOpts },
+    { text: 'Всего объектов', options: headerOpts },
+    { text: 'Выполнено', options: headerOpts },
+    { text: '%', options: headerOpts }
+  ]];
+  DISTRICTS.forEach((d,i)=>{
+    const s = districtStats(i);
+    tableRows.push([
+      { text: d.district, options:{ fontSize:9.5 } },
+      { text: String(s.total), options:{ fontSize:9.5, align:'center' } },
+      { text: s.sum.toFixed(1), options:{ fontSize:9.5, align:'center' } },
+      { text: Math.round(s.pct*100)+'%', options:{ fontSize:9.5, align:'center' } }
+    ]);
+  });
+  slide3.addTable(tableRows, {
+    x: 0.6, y: 1.0, w: 8.8,
+    autoPage: true,
+    border: { type: 'solid', color: 'B9C7D2', pt: 0.5 },
+    fontFace: 'Calibri'
+  });
+
+  try{
+    await pres.writeFile({ fileName: 'ТР_Презентация_2026.pptx' });
+  }catch(e){
+    console.error(e);
+    alert('Не удалось создать презентацию. Попробуйте ещё раз.');
+  }
+}
+
 loadAll();
 </script>
-</body>
-</html>
+
+
+</body></html>
