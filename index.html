@@ -1213,36 +1213,40 @@ function schedulePPRSave(dIdx, month){
 
 function pprDistrictStats(dIdx, month){
   const d = PPR_DISTRICTS[dIdx];
-  let planOsmotr=0, factOsmotr=0, planTo=0, factTo=0;
+  let planOsmotr=0, factOsmotr=0, planTo=0, factTo=0, yearPlanOsmotr=0, yearPlanTo=0;
   d.objectTypes.forEach(ot=>{
     const st = getPPRItemState(dIdx, month, ot.code);
     planOsmotr += Number((ot.osmotr.months[String(month)])||0);
     factOsmotr += Number(st.osmotr.value)||0;
     planTo += Number((ot.to.months[String(month)])||0);
     factTo += Number(st.to.value)||0;
+    yearPlanOsmotr += Number(ot.osmotr.yearPlan)||0;
+    yearPlanTo += Number(ot.to.yearPlan)||0;
   });
-  const pctOsmotr = planOsmotr ? factOsmotr/planOsmotr : 0;
-  const pctTo = planTo ? factTo/planTo : 0;
-  return {planOsmotr, factOsmotr, pctOsmotr, planTo, factTo, pctTo};
+  const pctOsmotr = yearPlanOsmotr ? factOsmotr/yearPlanOsmotr : 0;
+  const pctTo = yearPlanTo ? factTo/yearPlanTo : 0;
+  return {planOsmotr, factOsmotr, pctOsmotr, planTo, factTo, pctTo, yearPlanOsmotr, yearPlanTo};
 }
 
 function pprOverallStats(month){
-  let planOsmotr=0, factOsmotr=0, planTo=0, factTo=0;
+  let planOsmotr=0, factOsmotr=0, planTo=0, factTo=0, yearPlanOsmotr=0, yearPlanTo=0;
   PPR_DISTRICTS.forEach((d,i)=>{
     const s = pprDistrictStats(i, month);
     planOsmotr += s.planOsmotr; factOsmotr += s.factOsmotr;
     planTo += s.planTo; factTo += s.factTo;
+    yearPlanOsmotr += s.yearPlanOsmotr; yearPlanTo += s.yearPlanTo;
   });
   return {
-    planOsmotr, factOsmotr, pctOsmotr: planOsmotr? factOsmotr/planOsmotr:0,
-    planTo, factTo, pctTo: planTo? factTo/planTo:0
+    planOsmotr, factOsmotr, pctOsmotr: yearPlanOsmotr? factOsmotr/yearPlanOsmotr:0,
+    planTo, factTo, pctTo: yearPlanTo? factTo/yearPlanTo:0,
+    yearPlanOsmotr, yearPlanTo
   };
 }
 
 function renderPPRSummary(){
   const s = pprOverallStats(pprMonth);
   document.getElementById('summaryPill').innerHTML =
-    'Осмотр: <b>' + Math.round(s.pctOsmotr*100) + '%</b> (' + s.factOsmotr + ' из ' + s.planOsmotr + ') &nbsp;·&nbsp; ТО: <b>' + Math.round(s.pctTo*100) + '%</b> (' + s.factTo + ' из ' + s.planTo + ')';
+    'Осмотр: <b>' + Math.round(s.pctOsmotr*100) + '%</b> (' + s.factOsmotr + ' из ' + s.yearPlanOsmotr + ' год.план) &nbsp;·&nbsp; ТО: <b>' + Math.round(s.pctTo*100) + '%</b> (' + s.factTo + ' из ' + s.yearPlanTo + ' год.план)';
 }
 
 function renderPPRTabs(){
@@ -1290,7 +1294,7 @@ async function renderPPRPanel(){
       const avgPct = (s.pctOsmotr + s.pctTo) / 2;
       cards += '<div class="ov-card" data-ppr-goto="' + i + '">' +
         '<div class="name">' + escapeHtml(d.district) + '</div>' +
-        '<div class="count">Осмотр: ' + s.factOsmotr + '/' + s.planOsmotr + ' · ТО: ' + s.factTo + '/' + s.planTo + '</div>' +
+        '<div class="count">Осмотр: ' + s.factOsmotr + '/' + s.yearPlanOsmotr + ' (год) · ТО: ' + s.factTo + '/' + s.yearPlanTo + ' (год)</div>' +
         '<div class="bar-track"><div class="bar-fill" style="width:' + (avgPct*100) + '%"></div></div>' +
         '<div class="pct">' + Math.round(avgPct*100) + '%</div>' +
       '</div>';
@@ -1321,10 +1325,12 @@ async function renderPPRPanel(){
     const st = getPPRItemState(dIdx, pprMonth, ot.code);
     const planOsm = Number(ot.osmotr.months[String(pprMonth)]) || 0;
     const planTo = Number(ot.to.months[String(pprMonth)]) || 0;
+    const yearPlanOsm = Number(ot.osmotr.yearPlan) || 0;
+    const yearPlanTo = Number(ot.to.yearPlan) || 0;
     const factOsm = Number(st.osmotr.value) || 0;
     const factTo = Number(st.to.value) || 0;
-    const pctOsm = planOsm ? Math.round(factOsm/planOsm*100) : 0;
-    const pctToVal = planTo ? Math.round(factTo/planTo*100) : 0;
+    const pctOsm = yearPlanOsm ? Math.round(factOsm/yearPlanOsm*100) : 0;
+    const pctToVal = yearPlanTo ? Math.round(factTo/yearPlanTo*100) : 0;
 
     rows += '<div class="item-row" style="grid-template-columns: 60px 1fr;">' +
       '<div class="item-num" style="width:50px;">' + escapeHtml(ot.code) + '</div>' +
@@ -1333,17 +1339,19 @@ async function renderPPRPanel(){
         '<div class="ppr-metric-grid">' +
           '<div class="ppr-metric">' +
             '<div class="ppr-metric-title">Осмотр</div>' +
-            '<div class="ppr-metric-row"><span>План (месяц):</span><b>' + planOsm + '</b></div>' +
-            '<div class="ppr-metric-row"><span>Факт:</span> <input type="number" min="0" class="ppr-fact-input" data-district="' + dIdx + '" data-type="' + ot.code + '" data-cat="osmotr" value="' + factOsm + '" ' + dis + '></div>' +
-            '<div class="ppr-metric-row"><span>%:</span> <b>' + pctOsm + '%</b></div>' +
+            '<div class="ppr-metric-row"><span>План на год:</span><b>' + yearPlanOsm + '</b></div>' +
+            '<div class="ppr-metric-row"><span>План на месяц:</span><b>' + planOsm + '</b></div>' +
+            '<div class="ppr-metric-row"><span>Факт (с начала года):</span> <input type="number" min="0" class="ppr-fact-input" data-district="' + dIdx + '" data-type="' + ot.code + '" data-cat="osmotr" value="' + factOsm + '" ' + dis + '></div>' +
+            '<div class="ppr-metric-row"><span>% от год. плана:</span> <b>' + pctOsm + '%</b></div>' +
             '<div class="fill-meta">' + fillMetaText(st.osmotr) + '</div>' +
             (isAdmin ? pprHistoryBlock(dIdx, pprMonth, ot.code, 'osmotr', st.osmotr) : '') +
           '</div>' +
           '<div class="ppr-metric">' +
             '<div class="ppr-metric-title">ТО</div>' +
-            '<div class="ppr-metric-row"><span>План (месяц):</span><b>' + planTo + '</b></div>' +
-            '<div class="ppr-metric-row"><span>Факт:</span> <input type="number" min="0" class="ppr-fact-input" data-district="' + dIdx + '" data-type="' + ot.code + '" data-cat="to" value="' + factTo + '" ' + dis + '></div>' +
-            '<div class="ppr-metric-row"><span>%:</span> <b>' + pctToVal + '%</b></div>' +
+            '<div class="ppr-metric-row"><span>План на год:</span><b>' + yearPlanTo + '</b></div>' +
+            '<div class="ppr-metric-row"><span>План на месяц:</span><b>' + planTo + '</b></div>' +
+            '<div class="ppr-metric-row"><span>Факт (с начала года):</span> <input type="number" min="0" class="ppr-fact-input" data-district="' + dIdx + '" data-type="' + ot.code + '" data-cat="to" value="' + factTo + '" ' + dis + '></div>' +
+            '<div class="ppr-metric-row"><span>% от год. плана:</span> <b>' + pctToVal + '%</b></div>' +
             '<div class="fill-meta">' + fillMetaText(st.to) + '</div>' +
             (isAdmin ? pprHistoryBlock(dIdx, pprMonth, ot.code, 'to', st.to) : '') +
           '</div>' +
@@ -1355,7 +1363,7 @@ async function renderPPRPanel(){
   const s = pprDistrictStats(dIdx, pprMonth);
   panel.innerHTML =
     '<h2>' + escapeHtml(d.district) + ' — ' + PPR_MONTH_NAMES[pprMonth] + ' 2026</h2>' +
-    '<p class="sub">Осмотр: ' + s.factOsmotr + ' из ' + s.planOsmotr + ' (' + Math.round(s.pctOsmotr*100) + '%) · ТО: ' + s.factTo + ' из ' + s.planTo + ' (' + Math.round(s.pctTo*100) + '%)</p>' +
+    '<p class="sub">Осмотр: ' + s.factOsmotr + ' из ' + s.yearPlanOsmotr + ' год.план (' + Math.round(s.pctOsmotr*100) + '%) · ТО: ' + s.factTo + ' из ' + s.yearPlanTo + ' год.план (' + Math.round(s.pctTo*100) + '%)</p>' +
     (locked ? '<div class="lock-note">🔒 Заполнение заблокировано. Нажмите «Код для заполнения» вверху страницы.</div>' : '') +
     rows;
 
