@@ -641,6 +641,7 @@ document.getElementById('adminBtn').addEventListener('click', ()=>{
     if(activeTab === 'journal') activeTab = 'overview';
     updateAdminBtn();
     updateEditAccessBtn();
+    updatePPRImportBtnVisibility();
     renderTabs();
     renderPanel();
     return;
@@ -651,12 +652,17 @@ document.getElementById('adminBtn').addEventListener('click', ()=>{
     isAdmin = true;
     updateAdminBtn();
     updateEditAccessBtn();
+    updatePPRImportBtnVisibility();
     renderTabs();
     renderPanel();
   }else{
     alert('Неверный код.');
   }
 });
+
+function updatePPRImportBtnVisibility(){
+  document.getElementById('pprImportBtn').style.display = (appMode === 'ppr' && isAdmin) ? 'inline-flex' : 'none';
+}
 
 function updateAdminBtn(){
   const btn = document.getElementById('adminBtn');
@@ -818,7 +824,7 @@ document.querySelectorAll('.mode-btn').forEach(btn=>{
     document.querySelectorAll('.mode-btn').forEach(b=> b.classList.toggle('active', b === btn));
     document.getElementById('pprMonthPicker').style.display = (appMode === 'ppr') ? 'flex' : 'none';
     document.getElementById('editAccessBtn').style.display = (appMode === 'ppr') ? 'none' : 'inline-flex';
-    document.getElementById('pprImportBtn').style.display = (appMode === 'ppr') ? 'inline-flex' : 'none';
+    document.getElementById('pprImportBtn').style.display = (appMode === 'ppr' && isAdmin) ? 'inline-flex' : 'none';
     document.getElementById('pprPptxBtn').style.display = (appMode === 'ppr') ? 'inline-flex' : 'none';
     document.getElementById('trPptxBtn').style.display = (appMode === 'tr') ? 'inline-flex' : 'none';
     if(appMode === 'ppr'){
