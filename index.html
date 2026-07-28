@@ -632,6 +632,8 @@ async function apiSet(key, value){
 
 function keyFor(idx){ return 'trplan2026:district:' + idx; }
 function canEdit(){ return isAdmin || editUnlocked; }
+// Для ППР редактирование доступно ТОЛЬКО администратору (без кода доступа) — по требованию заказчика.
+function pprCanEdit(){ return isAdmin; }
 
 document.getElementById('adminBtn').addEventListener('click', ()=>{
   if(isAdmin){
@@ -815,6 +817,7 @@ document.querySelectorAll('.mode-btn').forEach(btn=>{
     appMode = btn.getAttribute('data-mode');
     document.querySelectorAll('.mode-btn').forEach(b=> b.classList.toggle('active', b === btn));
     document.getElementById('pprMonthPicker').style.display = (appMode === 'ppr') ? 'flex' : 'none';
+    document.getElementById('editAccessBtn').style.display = (appMode === 'ppr') ? 'none' : 'inline-flex';
     document.getElementById('pprImportBtn').style.display = (appMode === 'ppr') ? 'inline-flex' : 'none';
     document.getElementById('pprPptxBtn').style.display = (appMode === 'ppr') ? 'inline-flex' : 'none';
     document.getElementById('trPptxBtn').style.display = (appMode === 'tr') ? 'inline-flex' : 'none';
@@ -1512,7 +1515,7 @@ async function renderPPRPanel(){
       '<h2>ППР — общий прогресс за ' + pprPeriodLabel() + '</h2>' +
       '<p class="sub">Актюбинский ДЭСД · план и % считаются за выбранный период · нажмите на карточку района, чтобы открыть форму заполнения</p>' +
       '<div class="shared-note">Данные ППР хранятся в той же общей Google Таблице, отдельно от данных ТР.</div>' +
-      (!canEdit() ? '<div class="lock-note">🔒 Заполнение заблокировано. Нажмите «Код для заполнения» вверху, чтобы вносить данные.</div>' : '') +
+      (!pprCanEdit() ? '<div class="lock-note">🔒 Заполнение ППР доступно только администратору. Зайдите в «Режим администратора», чтобы вносить данные.</div>' : '') +
       (isAdmin ? '<button type="button" id="pprResetAllBtn" class="admin-btn" style="margin-bottom:14px; background:#fbe1de; color:#a32f1f; border-color:#a32f1f;">🗑 Очистить факты ВСЕХ районов за выбранный период</button>' : '') +
       '<div class="ppr-chart-block">' +
         '<div class="ppr-chart-head">' +
@@ -1571,7 +1574,7 @@ async function renderPPRPanel(){
 
   const dIdx = Number(pprActiveTab);
   const d = PPR_DISTRICTS[dIdx];
-  const locked = !canEdit();
+  const locked = !pprCanEdit();
   const dis = locked ? 'disabled' : '';
 
   let rows = '';
@@ -1623,7 +1626,7 @@ async function renderPPRPanel(){
   panel.innerHTML =
     '<h2>' + escapeHtml(d.district) + ' — ' + pprPeriodLabel() + '</h2>' +
     '<p class="sub">Осмотр ' + s.planOsmotr + '/' + s.factOsmotr + ' — <b>' + Math.round(s.pctOsmotr*100) + '%</b> · ТО ' + s.planTo + '/' + s.factTo + ' — <b>' + Math.round(s.pctTo*100) + '%</b> · план и % — за выбранный период</p>' +
-    (locked ? '<div class="lock-note">🔒 Заполнение заблокировано. Нажмите «Код для заполнения» вверху страницы.</div>' : '') +
+    (locked ? '<div class="lock-note">🔒 Заполнение ППР доступно только администратору. Зайдите в «Режим администратора», чтобы вводить данные.</div>' : '') +
     (isAdmin ? '<button type="button" id="pprResetBtn" class="admin-btn" style="margin-bottom:14px; background:#fbe1de; color:#a32f1f; border-color:#a32f1f;">🗑 Очистить факты этого района за выбранный период</button>' : '') +
     rows;
 
@@ -1983,8 +1986,8 @@ document.getElementById('pprImportFile').addEventListener('change', handlePPRImp
 async function handlePPRImportFile(e){
   const file = e.target.files[0];
   if(!file){ return; }
-  if(!canEdit()){
-    alert('Импорт данных доступен только при разблокированном заполнении (введите код доступа) или в режиме администратора.');
+  if(!pprCanEdit()){
+    alert('Импорт данных ППР доступен только администратору. Зайдите в «Режим администратора».');
     e.target.value = '';
     return;
   }
