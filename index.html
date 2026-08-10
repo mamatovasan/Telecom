@@ -2594,13 +2594,15 @@ function pptxLogoSrc(){
   return headerImg ? headerImg.src : null;
 }
 
-// Современный титульный слайд: тёмно-синий фон, диагональный акцент, логотип, нижняя полоса.
+// Тёмная BI-панель со свечением: почти чёрный фон, неоновая бирюзовая линия-акцент, логотип, нижняя полоса.
 function addModernTitleSlide(pres, titleText, subtitleLines){
   const slide = pres.addSlide();
-  slide.background = { color: '0B2A43' };
-  slide.addShape(pres.ShapeType.rect, { x: 6.7, y: 0, w: 3.3, h: 5.63, fill: { color: '123A5C' }, line: { color: '123A5C' } });
-  slide.addShape(pres.ShapeType.rect, { x: 7.6, y: 0, w: 0.06, h: 5.63, fill: { color: '4EA1E8' }, line: { color: '4EA1E8' } });
-  slide.addShape(pres.ShapeType.rect, { x: 0, y: 5.18, w: 10, h: 0.45, fill: { color: '4472C4' }, line: { color: '4472C4' } });
+  slide.background = { color: '080B14' };
+  slide.addShape(pres.ShapeType.rect, { x: 6.7, y: 0, w: 3.3, h: 5.63, fill: { color: '0D1220' }, line: { color: '0D1220' } });
+  slide.addShape(pres.ShapeType.rect, { x: 7.6, y: 0, w: 0.045, h: 5.63, fill: { color: '2DE3D0' }, line: { color: '2DE3D0' },
+    shadow: { type: 'outer', color: '2DE3D0', blur: 10, offset: 0, angle: 0, opacity: 0.65 } });
+  slide.addShape(pres.ShapeType.rect, { x: 0, y: 5.18, w: 10, h: 0.035, fill: { color: '2DE3D0' }, line: { color: '2DE3D0' },
+    shadow: { type: 'outer', color: '2DE3D0', blur: 10, offset: 0, angle: 0, opacity: 0.55 } });
 
   const logoSrc = pptxLogoSrc();
   if(logoSrc){
@@ -2610,18 +2612,19 @@ function addModernTitleSlide(pres, titleText, subtitleLines){
   slide.addText(titleText, { x: 0.5, y: 1.9, w: 6.9, h: 1.1, fontSize: 34, bold: true, color: 'FFFFFF', fontFace: 'Calibri' });
   let ly = 2.95;
   subtitleLines.forEach(line=>{
-    slide.addText(line, { x: 0.5, y: ly, w: 6.9, h: 0.4, fontSize: 14.5, color: 'AFC6DD', fontFace: 'Calibri' });
+    slide.addText(line, { x: 0.5, y: ly, w: 6.9, h: 0.4, fontSize: 14.5, color: '9AA6C4', fontFace: 'Calibri' });
     ly += 0.42;
   });
-  slide.addText('Сформировано: ' + new Date().toLocaleString('ru-RU'), { x: 0.5, y: 5.24, w: 6.9, h: 0.32, fontSize: 9.5, color: 'EAF3FF', fontFace: 'Calibri' });
+  slide.addText('Сформировано: ' + new Date().toLocaleString('ru-RU'), { x: 0.5, y: 5.24, w: 6.9, h: 0.32, fontSize: 9.5, color: '7C869E', fontFace: 'Calibri' });
   return slide;
 }
 
-// Заголовок-плашка для внутренних слайдов (диаграмма/таблица) — единый стиль.
+// Заголовок-плашка для внутренних слайдов (диаграмма/таблица) — единый тёмный стиль с неоновой линией.
 function addSlideHeaderBar(pres, slide, titleText){
-  slide.background = { color: 'F4F9FD' };
-  slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: 10, h: 0.78, fill: { color: '0B2A43' }, line: { color: '0B2A43' } });
-  slide.addShape(pres.ShapeType.rect, { x: 0, y: 0.78, w: 10, h: 0.05, fill: { color: '4EA1E8' }, line: { color: '4EA1E8' } });
+  slide.background = { color: '0D1220' };
+  slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: 10, h: 0.78, fill: { color: '080B14' }, line: { color: '080B14' } });
+  slide.addShape(pres.ShapeType.rect, { x: 0, y: 0.78, w: 10, h: 0.035, fill: { color: '2DE3D0' }, line: { color: '2DE3D0' },
+    shadow: { type: 'outer', color: '2DE3D0', blur: 10, offset: 0, angle: 0, opacity: 0.6 } });
   slide.addText(titleText, { x: 0.4, y: 0.08, w: 9.2, h: 0.6, fontSize: 19, bold: true, color: 'FFFFFF', fontFace: 'Calibri', valign: 'middle' });
 }
 
@@ -2659,18 +2662,27 @@ async function exportPPRToPptx(){
     x: 0.3, y: 1.0, w: 9.4, h: 4.4,
     barDir: 'bar',
     catAxisLabelFontSize: 8,
+    catAxisLabelColor: '9AA6C4',
+    catAxisLineColor: '1C2438',
+    catGridLine: { style: 'none' },
     valAxisMaxVal: 100,
+    valAxisLabelColor: '9AA6C4',
+    valAxisLineColor: '1C2438',
+    valGridLine: { color: '1C2438', style: 'solid', size: 0.75 },
     showLegend: true,
     legendPos: 'b',
+    legendColor: '9AA6C4',
     showValue: true,
     dataLabelFontSize: 7,
-    chartColors: ['1F77B4', '2F9E5F']
+    dataLabelColor: 'FFFFFF',
+    chartColors: ['FF7A59', '2DE3D0']
   });
 
   // ---- Слайд(ы): таблица по районам ----
   const slide3 = pres.addSlide();
   addSlideHeaderBar(pres, slide3, 'Данные по районам — ' + label);
-  const headerOpts = { bold: true, fill: '024D78', color: 'FFFFFF', fontSize: 9, valign: 'middle' };
+  const headerOpts = { bold: true, fill: '080B14', color: '2DE3D0', fontSize: 9, valign: 'middle' };
+  const rowOpts = { fill: '0D1220', color: 'E7ECF7' };
   const tableRows = [[
     { text: 'Район', options: headerOpts },
     { text: 'Осмотр план', options: headerOpts },
@@ -2683,19 +2695,19 @@ async function exportPPRToPptx(){
   PPR_DISTRICTS.forEach((d,i)=>{
     const s = pprDistrictStats(i, months);
     tableRows.push([
-      { text: d.district, options:{ fontSize:8.5 } },
-      { text: String(s.planOsmotr), options:{ fontSize:8.5, align:'center' } },
-      { text: String(s.factOsmotr), options:{ fontSize:8.5, align:'center' } },
-      { text: Math.round(s.pctOsmotr*100)+'%', options:{ fontSize:8.5, align:'center' } },
-      { text: String(s.planTo), options:{ fontSize:8.5, align:'center' } },
-      { text: String(s.factTo), options:{ fontSize:8.5, align:'center' } },
-      { text: Math.round(s.pctTo*100)+'%', options:{ fontSize:8.5, align:'center' } }
+      { text: d.district, options:{ ...rowOpts, fontSize:8.5 } },
+      { text: String(s.planOsmotr), options:{ ...rowOpts, fontSize:8.5, align:'center' } },
+      { text: String(s.factOsmotr), options:{ ...rowOpts, fontSize:8.5, align:'center' } },
+      { text: Math.round(s.pctOsmotr*100)+'%', options:{ ...rowOpts, fontSize:8.5, align:'center', color: 'FF7A59', bold: true } },
+      { text: String(s.planTo), options:{ ...rowOpts, fontSize:8.5, align:'center' } },
+      { text: String(s.factTo), options:{ ...rowOpts, fontSize:8.5, align:'center' } },
+      { text: Math.round(s.pctTo*100)+'%', options:{ ...rowOpts, fontSize:8.5, align:'center', color: '2DE3D0', bold: true } }
     ]);
   });
   slide3.addTable(tableRows, {
     x: 0.3, y: 1.0, w: 9.4,
     autoPage: true,
-    border: { type: 'solid', color: 'B9C7D2', pt: 0.5 },
+    border: { type: 'solid', color: '242E45', pt: 0.5 },
     fontFace: 'Calibri'
   });
 
@@ -2741,17 +2753,25 @@ async function exportTRToPptx(){
     x: 0.3, y: 1.0, w: 9.4, h: 4.4,
     barDir: 'bar',
     catAxisLabelFontSize: 8,
+    catAxisLabelColor: '9AA6C4',
+    catAxisLineColor: '1C2438',
+    catGridLine: { style: 'none' },
     valAxisMaxVal: 100,
+    valAxisLabelColor: '9AA6C4',
+    valAxisLineColor: '1C2438',
+    valGridLine: { color: '1C2438', style: 'solid', size: 0.75 },
     showLegend: false,
     showValue: true,
     dataLabelFontSize: 8,
-    chartColors: ['1F77B4']
+    dataLabelColor: 'FFFFFF',
+    chartColors: ['2DE3D0']
   });
 
   // ---- Слайд(ы): таблица по районам ----
   const slide3 = pres.addSlide();
   addSlideHeaderBar(pres, slide3, 'Данные по районам — ТР 2026');
-  const headerOpts = { bold: true, fill: '024D78', color: 'FFFFFF', fontSize: 10, valign: 'middle' };
+  const headerOpts = { bold: true, fill: '080B14', color: '2DE3D0', fontSize: 10, valign: 'middle' };
+  const rowOpts = { fill: '0D1220', color: 'E7ECF7' };
   const tableRows = [[
     { text: 'Район', options: headerOpts },
     { text: 'Всего объектов', options: headerOpts },
@@ -2761,16 +2781,16 @@ async function exportTRToPptx(){
   DISTRICTS.forEach((d,i)=>{
     const s = districtStats(i);
     tableRows.push([
-      { text: d.district, options:{ fontSize:9.5 } },
-      { text: String(s.total), options:{ fontSize:9.5, align:'center' } },
-      { text: s.sum.toFixed(1), options:{ fontSize:9.5, align:'center' } },
-      { text: Math.round(s.pct*100)+'%', options:{ fontSize:9.5, align:'center' } }
+      { text: d.district, options:{ ...rowOpts, fontSize:9.5 } },
+      { text: String(s.total), options:{ ...rowOpts, fontSize:9.5, align:'center' } },
+      { text: s.sum.toFixed(1), options:{ ...rowOpts, fontSize:9.5, align:'center' } },
+      { text: Math.round(s.pct*100)+'%', options:{ ...rowOpts, fontSize:9.5, align:'center', color: '2DE3D0', bold: true } }
     ]);
   });
   slide3.addTable(tableRows, {
     x: 0.6, y: 1.0, w: 8.8,
     autoPage: true,
-    border: { type: 'solid', color: 'B9C7D2', pt: 0.5 },
+    border: { type: 'solid', color: '242E45', pt: 0.5 },
     fontFace: 'Calibri'
   });
 
