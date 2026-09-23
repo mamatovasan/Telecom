@@ -1977,11 +1977,11 @@ function renderTRPanel(){
   const dis = locked ? 'disabled' : '';
 
   let rows = '';
-  d.items.forEach(it=>{
+  d.items.forEach((it, localIndex)=>{
     const st = getItemState(dIdx, it.num);
     const metaLine = [it.dates, it.quarter ? ('кв. ' + it.quarter.replace(/\./g,'')) : ''].filter(Boolean).join(' · ');
     rows += '<div class="item-row">' +
-      '<div class="item-num">' + it.num + '</div>' +
+      '<div class="item-num">' + (localIndex + 1) + '</div>' +
       '<div class="item-body">' +
         '<div class="work-name">' + escapeHtml(it.name) + '</div>' +
         '<div class="meta">' + (metaLine ? escapeHtml(metaLine) : '&nbsp;') + (it.note ? ' <span class="note">· ' + escapeHtml(it.note) + '</span>' : '') + '</div>' +
