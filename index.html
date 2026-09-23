@@ -654,6 +654,65 @@ body > * { position:relative; z-index:1; }
 }
 </style>
 
+
+<style id="fix-grey-cards">
+/* Исправление светло-серых/белых блоков в карточках ТР */
+.item-card, .report-item, .object-card, .task-card,
+[class*="item-card"], [class*="report-item"] {
+  background: linear-gradient(135deg, rgba(4,27,52,.96), rgba(3,18,37,.96)) !important;
+  border: 1px solid rgba(0,174,255,.58) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 8px 24px rgba(0,0,0,.18) !important;
+  color: #eaf6ff !important;
+}
+
+.item-card *, .report-item *, .object-card *, .task-card * {
+  color: inherit;
+}
+
+/* Текстовые поля и комментарии */
+textarea, input[type="text"], input[type="number"], select,
+.comment-input, .comment-box, [class*="comment"] textarea,
+[class*="comment"] input {
+  background: rgba(5,31,57,.92) !important;
+  color: #dcecff !important;
+  border: 1px solid rgba(0,161,255,.55) !important;
+  box-shadow: none !important;
+}
+textarea::placeholder, input::placeholder {
+  color: #8fa9c2 !important;
+  opacity: 1 !important;
+}
+
+/* Полосы прогресса */
+input[type="range"] {
+  accent-color: #00c8ff;
+}
+.bar-track, .progress-track, [class*="progress-track"] {
+  background: #071d33 !important;
+  border-color: #24547d !important;
+}
+
+/* Кнопки 0/20/50/100 и похожие */
+.status-chip, .quick-btn, [class*="quick"], button[data-value] {
+  background: linear-gradient(180deg,#0b3966,#082847) !important;
+  color: #eaf6ff !important;
+  border-color: #157bd0 !important;
+}
+
+/* Номер объекта */
+.item-num, .num-badge, [class*="item-num"] {
+  background: linear-gradient(180deg,#087ee7,#0752a7) !important;
+  color: #fff !important;
+  border-color: #169dff !important;
+}
+
+/* Если исходный CSS задавал белый фон внутренним контейнерам */
+.panelContent > div[style*="background"],
+#panelContent > div[style*="background"] {
+  color: #eaf6ff;
+}
+</style>
+
 </head>
 <body>
 
