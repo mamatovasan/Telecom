@@ -577,142 +577,6 @@
     .name-box input{width:110px;}
   }
 </style>
-
-<style id="dark-tech-override">
-:root{--bg:#050d1b!important;--paper:#071426!important;--ink:#eef7ff!important;--muted:#91a8c4!important;--line:#173a63!important;--brand:#00b8ff!important;--brand2:#176bff!important;--soft:#0a1d35!important;--ok:#19e49b!important;--warn:#ffd02f!important;--bad:#ff5364!important}
-html,body{background:radial-gradient(circle at 75% 0%,#0a2b52 0,#06172b 28%,#030a15 72%) fixed!important;color:#eef7ff!important}
-body:before{content:'';position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(0,184,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,184,255,.025) 1px,transparent 1px);background-size:32px 32px;z-index:-1}
-header,.topbar,.app-header{background:linear-gradient(135deg,#06172c,#082343)!important;border-color:#15518a!important;box-shadow:0 10px 35px rgba(0,0,0,.35)!important}
-.panel,.card,.ov-card,.ppr-chart-block,.plan-chart-card,.plan-kpi-card,.shared-note,.admin-code-panel,.lock-note{background:linear-gradient(145deg,rgba(9,29,52,.96),rgba(4,16,31,.96))!important;border-color:#155a95!important;color:#eef7ff!important;box-shadow:0 12px 32px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.035)!important}
-h1,h2,h3,h4,.name,.pct,.plan-kpi-value{color:#f4f9ff!important;text-shadow:0 0 18px rgba(0,184,255,.12)}
-.sub,.count,.plan-kpi-label,.plan-kpi-sub{color:#8fa9c8!important}
-button,.tab-btn,.export-btn,.admin-btn{background:linear-gradient(135deg,#08284a,#0a3764)!important;color:#dff5ff!important;border:1px solid #1679bf!important;box-shadow:inset 0 1px rgba(255,255,255,.06)!important}
-button:hover,.tab-btn:hover,.export-btn:hover{border-color:#20c7ff!important;box-shadow:0 0 18px rgba(0,184,255,.22)!important;transform:translateY(-1px)}
-.tab-btn.active,.status-chip.active{background:linear-gradient(135deg,#0068e8,#00aeea)!important;color:white!important;border-color:#35d5ff!important;box-shadow:0 0 20px rgba(0,174,234,.25)!important}
-input,select,textarea{background:#061426!important;color:#eef7ff!important;border-color:#1b5b91!important}
-table{background:#061426!important;color:#eaf5ff!important;border-color:#163d66!important}
-th{background:#0a2a4b!important;color:#dff5ff!important;border-color:#1b578c!important}td{border-color:#153a61!important}
-tr:nth-child(even) td{background:rgba(12,39,67,.55)!important}
-.bar-track{background:#102944!important;border:1px solid #1b4b78!important}.bar-fill{background:linear-gradient(90deg,#00a7ff,#19e49b)!important;box-shadow:0 0 14px rgba(25,228,155,.25)}
-.summary-pill,#summaryPill{background:#071c34!important;color:#dff5ff!important;border-color:#17689f!important}
-a{color:#38cfff!important}
-</style>
-
-<style id="hide-ppr-district-chart">
-/* ППР: диаграмма по районам отключена. Остальные данные и расчёты не изменены. */
-body:has(.mode-btn[data-mode="ppr"].active) .ppr-chart-block:has(#pprChartWrap){display:none!important;}
-</style>
-
-<style id="final-dark-dashboard-patch">
-/* Убираем обе светлые диаграммы по районам: ППР и ТР */
-body:has(.mode-btn[data-mode="ppr"].active) .ppr-chart-block:has(#pprChartWrap),
-body:has(.mode-btn[data-mode="tr"].active) .ppr-chart-block:has(#trChartWrap),
-#trChartWrap,
-#pprChartWrap {
-  display:none !important;
-}
-.ppr-chart-block:has(#trChartWrap),
-.ppr-chart-block:has(#pprChartWrap) {
-  display:none !important;
-}
-
-/* Фон в стиле ранее показанного макета */
-html, body {
-  background:
-    radial-gradient(circle at 78% 8%, rgba(0,132,255,.13), transparent 31%),
-    radial-gradient(circle at 16% 70%, rgba(52,65,255,.11), transparent 34%),
-    linear-gradient(135deg,#020b16 0%,#04172b 45%,#03101f 100%) !important;
-}
-body::before {
-  content:"";
-  position:fixed;
-  left:0;
-  bottom:0;
-  width:min(330px,25vw);
-  height:72vh;
-  background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MjAgOTAwIj4KPGRlZnM+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMwNDE3MmIiIHN0b3Atb3BhY2l0eT0iMCIvPgogICAgPHN0b3Agb2Zmc2V0PSIuNDUiIHN0b3AtY29sb3I9IiMwNTI2NGEiIHN0b3Atb3BhY2l0eT0iLjM4Ii8+CiAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMzEzMjYiIHN0b3Atb3BhY2l0eT0iLjkyIi8+CiAgPC9saW5lYXJHcmFkaWVudD4KICA8ZmlsdGVyIGlkPSJnbG93Ij48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSI3IiByZXN1bHQ9ImIiLz48ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImIiLz48ZmVNZXJnZU5vZGUgaW49IlNvdXJjZUdyYXBoaWMiLz48L2ZlTWVyZ2U+PC9maWx0ZXI+CjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjUyMCIgaGVpZ2h0PSI5MDAiIGZpbGw9InVybCgjZykiLz4KPHBhdGggZD0iTTAgNzYwIEw5MCA2NzUgTDE0NSA3MjAgTDIzMCA2MjAgTDMxNSA3MTUgTDM5MCA2NTUgTDUyMCA3NjAgTDUyMCA5MDAgTDAgOTAwWiIgZmlsbD0iIzA3MzM2YSIgb3BhY2l0eT0iLjU1Ii8+CjxwYXRoIGQ9Ik0wIDgwNSBMMTE1IDcxNSBMMTkwIDc3MCBMMjc1IDY3NSBMMzYwIDc2NSBMNDQ1IDcxMCBMNTIwIDc2MCBMNTIwIDkwMCBMMCA5MDBaIiBmaWxsPSIjMDUxZTQzIiBvcGFjaXR5PSIuOSIvPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNTAgMTgwKSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWx0ZXI9InVybCgjZ2xvdykiPgogIDxwYXRoIGQ9Ik0xMDUgNTUgTDIwIDYxMCBNMTA1IDU1IEwxOTAgNjEwIE0yMCA2MTAgTDE5MCA2MTAiIHN0cm9rZT0iIzA5YmZmZiIgc3Ryb2tlLXdpZHRoPSI1Ii8+CiAgPHBhdGggZD0iTTQyIDQ3MCBMMTY4IDQ3MCBNNTQgMzkwIEwxNTYgMzkwIE02NyAzMDUgTDE0MyAzMDUgTTgwIDIyMCBMMTMwIDIyMCBNOTIgMTM1IEwxMTggMTM1IiBzdHJva2U9IiMwODdjZmYiIHN0cm9rZS13aWR0aD0iNCIvPgogIDxwYXRoIGQ9Ik0yMCA2MTAgTDE2OCA0NzAgTDQyIDQ3MCBMMTU2IDM5MCBMNTQgMzkwIEwxNDMgMzA1IEw2NyAzMDUgTDEzMCAyMjAgTDgwIDIyMCBMMTE4IDEzNSBMOTIgMTM1IEwxMDUgNTUiIHN0cm9rZT0iIzdiNWNmZiIgc3Ryb2tlLXdpZHRoPSIzIiBvcGFjaXR5PSIuOTUiLz4KICA8cGF0aCBkPSJNMTkwIDYxMCBMNDIgNDcwIEwxNjggNDcwIEw1NCAzOTAgTDE1NiAzOTAgTDY3IDMwNSBMMTQzIDMwNSBMODAgMjIwIEwxMzAgMjIwIEw5MiAxMzUgTDExOCAxMzUgTDEwNSA1NSIgc3Ryb2tlPSIjMDBkOGZmIiBzdHJva2Utd2lkdGg9IjMiIG9wYWNpdHk9Ii45Ii8+CiAgPHBhdGggZD0iTTEwNSA1NSBMMTA1IDAiIHN0cm9rZT0iIzAwZDhmZiIgc3Ryb2tlLXdpZHRoPSI1Ii8+CiAgPGNpcmNsZSBjeD0iMTA1IiBjeT0iLTgiIHI9IjciIGZpbGw9IiMwMGU1ZmYiIHN0cm9rZT0iIzdiNWNmZiIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgPHBhdGggZD0iTTc0IDc1IFEzOCA5NSA3NCAxMTUgTTEzNiA3NSBRMTcyIDk1IDEzNiAxMTUiIHN0cm9rZT0iIzAwZDhmZiIgc3Ryb2tlLXdpZHRoPSI3Ii8+CiAgPHBhdGggZD0iTTYwIDU4IFE4IDk1IDYwIDEzMiBNMTUwIDU4IFEyMDIgOTUgMTUwIDEzMiIgc3Ryb2tlPSIjMTk3NmZmIiBzdHJva2Utd2lkdGg9IjUiIG9wYWNpdHk9Ii45Ii8+CjwvZz4KPC9zdmc+");
-  background-repeat:no-repeat;
-  background-position:left bottom;
-  background-size:contain;
-  opacity:.78;
-  pointer-events:none;
-  z-index:0;
-}
-body::after {
-  content:"";
-  position:fixed;
-  inset:0;
-  background:linear-gradient(90deg,rgba(1,10,22,.15),transparent 28%,transparent 100%);
-  pointer-events:none;
-  z-index:0;
-}
-body > * { position:relative; z-index:1; }
-
-.panel,.card,.ov-card,.plan-chart-card,.plan-kpi-card,.shared-note,.admin-code-panel,.lock-note {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-</style>
-
-
-<style id="fix-grey-cards">
-/* Исправление светло-серых/белых блоков в карточках ТР */
-.item-card, .report-item, .object-card, .task-card,
-[class*="item-card"], [class*="report-item"] {
-  background: linear-gradient(135deg, rgba(4,27,52,.96), rgba(3,18,37,.96)) !important;
-  border: 1px solid rgba(0,174,255,.58) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 8px 24px rgba(0,0,0,.18) !important;
-  color: #eaf6ff !important;
-}
-
-.item-card *, .report-item *, .object-card *, .task-card * {
-  color: inherit;
-}
-
-/* Текстовые поля и комментарии */
-textarea, input[type="text"], input[type="number"], select,
-.comment-input, .comment-box, [class*="comment"] textarea,
-[class*="comment"] input {
-  background: rgba(5,31,57,.92) !important;
-  color: #dcecff !important;
-  border: 1px solid rgba(0,161,255,.55) !important;
-  box-shadow: none !important;
-}
-textarea::placeholder, input::placeholder {
-  color: #8fa9c2 !important;
-  opacity: 1 !important;
-}
-
-/* Полосы прогресса */
-input[type="range"] {
-  accent-color: #00c8ff;
-}
-.bar-track, .progress-track, [class*="progress-track"] {
-  background: #071d33 !important;
-  border-color: #24547d !important;
-}
-
-/* Кнопки 0/20/50/100 и похожие */
-.status-chip, .quick-btn, [class*="quick"], button[data-value] {
-  background: linear-gradient(180deg,#0b3966,#082847) !important;
-  color: #eaf6ff !important;
-  border-color: #157bd0 !important;
-}
-
-/* Номер объекта */
-.item-num, .num-badge, [class*="item-num"] {
-  background: linear-gradient(180deg,#087ee7,#0752a7) !important;
-  color: #fff !important;
-  border-color: #169dff !important;
-}
-
-/* Если исходный CSS задавал белый фон внутренним контейнерам */
-.panelContent > div[style*="background"],
-#panelContent > div[style*="background"] {
-  color: #eaf6ff;
-}
-</style>
-
 </head>
 <body>
 
@@ -1502,51 +1366,47 @@ function chartBarColor(fraction){
 // Строит SVG-диаграмму (горизонтальные полосы) по всем районам за выбранный период:
 // для каждого района — отдельная полоса Осмотр и отдельная полоса ТО.
 function buildPPRChartSVG(months){
-  // ОДНА диаграмма: Осмотр План/Факт + ТО План/Факт по каждому району.
-  // Расчёты не меняются — используем готовые значения pprDistrictStats().
   const rows = PPR_DISTRICTS.map((d,i)=>{
-    const st = pprDistrictStats(i, months);
-    return {
-      name: d.district,
-      planO: Number(st.planOsmotr)||0,
-      factO: Number(st.factOsmotr)||0,
-      planT: Number(st.planTo)||0,
-      factT: Number(st.factTo)||0
-    };
+    const s = pprDistrictStats(i, months);
+    return { name: d.district, pctO: s.pctOsmotr, pctT: s.pctTo };
   });
-  const maxVal = Math.max(1, ...rows.flatMap(r=>[r.planO,r.factO,r.planT,r.factT]));
-  const chartX = 205, barMaxW = 390, viewW = 760;
-  const barH = 11, gap = 4, groupGap = 14, topPad = 18;
-  let y = topPad, bars = '';
-  const scale = v => (v <= 0 ? 0 : Math.max(2, (v/maxVal)*barMaxW));
-  const rowBar = (label, value, color)=>{
-    const yy = y;
-    bars += '<text x="'+(chartX-8)+'" y="'+(yy+barH-2)+'" text-anchor="end" font-size="9.5" fill="#9DB6D0">'+label+'</text>';
-    bars += '<rect x="'+chartX+'" y="'+yy+'" width="'+barMaxW+'" height="'+barH+'" fill="#0B2037" stroke="#173B5D" stroke-width="1" rx="4"/>';
-    if(value>0) bars += '<rect x="'+chartX+'" y="'+yy+'" width="'+scale(value)+'" height="'+barH+'" fill="'+color+'" rx="4"/>';
-    bars += '<text x="'+(chartX+barMaxW+9)+'" y="'+(yy+barH-2)+'" font-size="9.5" font-weight="700" fill="#EAF4FF">'+value+'</text>';
-    y += barH + gap;
-  };
+  const barH = 16, rowGap = 6, groupGap = 14;
+  const chartX = 168, barMaxW = 430, viewW = 720;
+  const topPad = 10;
+  let y = topPad;
+  let bars = '';
   rows.forEach(r=>{
-    const groupTop = y;
-    rowBar('Осмотр · план', r.planO, '#168BFF');
-    rowBar('Осмотр · факт', r.factO, '#35E6A5');
-    rowBar('ТО · план', r.planT, '#7C5CFF');
-    rowBar('ТО · факт', r.factT, '#22C7F2');
-    const mid = groupTop + ((barH+gap)*4-gap)/2 + 3;
-    bars += '<text x="0" y="'+mid+'" font-size="10.5" font-weight="700" fill="#EAF4FF">'+escapeHtml(r.name)+'</text>';
-    bars += '<line x1="0" y1="'+(y+3)+'" x2="'+(chartX+barMaxW+70)+'" y2="'+(y+3)+'" stroke="#173B5D" stroke-width="1"/>';
-    y += groupGap;
+    const oW = Math.max(2, Math.min(1, r.pctO) * barMaxW);
+    const tW = Math.max(2, Math.min(1, r.pctT) * barMaxW);
+    const oColor = chartBarColor(r.pctO);
+    const tColor = chartBarColor(r.pctT);
+
+    bars += '<text x="0" y="' + (y + barH - 4) + '" font-size="11" fill="#16232E">' + escapeHtml(r.name) + '</text>';
+    bars += '<rect x="' + chartX + '" y="' + y + '" width="' + barMaxW + '" height="' + barH + '" fill="#EEF3F8" rx="3"/>';
+    bars += '<rect x="' + chartX + '" y="' + y + '" width="' + oW + '" height="' + barH + '" fill="' + oColor + '" rx="3"/>';
+    bars += '<text x="' + (chartX + barMaxW + 8) + '" y="' + (y + barH - 4) + '" font-size="10.5" font-weight="700" fill="#16232E">О ' + Math.round(r.pctO*100) + '%</text>';
+    y += barH + rowGap;
+
+    bars += '<rect x="' + chartX + '" y="' + y + '" width="' + barMaxW + '" height="' + barH + '" fill="#EEF3F8" rx="3"/>';
+    bars += '<rect x="' + chartX + '" y="' + y + '" width="' + tW + '" height="' + barH + '" fill="' + tColor + '" rx="3"/>';
+    bars += '<text x="' + (chartX + barMaxW + 8) + '" y="' + (y + barH - 4) + '" font-size="10.5" font-weight="700" fill="#16232E">ТО ' + Math.round(r.pctT*100) + '%</text>';
+    y += barH + (groupGap * 0.45);
+    bars += '<line x1="0" y1="' + y + '" x2="' + (chartX + barMaxW + 60) + '" y2="' + y + '" stroke="#D7E3EE" stroke-width="1"/>';
+    y += groupGap * 0.55;
   });
-  const viewH = y + 38;
-  const legendY = viewH - 24;
-  const legend = '<g transform="translate('+chartX+','+legendY+')">' +
-    '<rect x="0" y="0" width="11" height="11" fill="#168BFF" rx="3"/><text x="16" y="10" font-size="10" fill="#B8CCE0">Осмотр план</text>' +
-    '<rect x="92" y="0" width="11" height="11" fill="#35E6A5" rx="3"/><text x="108" y="10" font-size="10" fill="#B8CCE0">Осмотр факт</text>' +
-    '<rect x="194" y="0" width="11" height="11" fill="#7C5CFF" rx="3"/><text x="210" y="10" font-size="10" fill="#B8CCE0">ТО план</text>' +
-    '<rect x="268" y="0" width="11" height="11" fill="#22C7F2" rx="3"/><text x="284" y="10" font-size="10" fill="#B8CCE0">ТО факт</text></g>';
-  return '<svg viewBox="0 0 '+viewW+' '+viewH+'" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="background:#061526;font-family:Segoe UI,Arial,sans-serif;border-radius:12px">' +
-    '<rect x="0" y="0" width="'+viewW+'" height="'+viewH+'" fill="#061526" rx="12"/>' + bars + legend + '</svg>';
+  const viewH = y + 30;
+
+  let legend = '<g transform="translate(' + chartX + ',' + (viewH - 22) + ')">' +
+    '<rect x="0" y="0" width="12" height="12" fill="#2f9e5f" rx="2"/><text x="16" y="10" font-size="10.5" fill="#16232E">80%+</text>' +
+    '<rect x="70" y="0" width="12" height="12" fill="#e0ac16" rx="2"/><text x="86" y="10" font-size="10.5" fill="#16232E">50-79%</text>' +
+    '<rect x="150" y="0" width="12" height="12" fill="#e0522b" rx="2"/><text x="166" y="10" font-size="10.5" fill="#16232E">&lt;50%</text>' +
+    '</g>';
+
+  return '<svg viewBox="0 0 ' + viewW + ' ' + viewH + '" width="100%" height="auto" ' +
+    'xmlns="http://www.w3.org/2000/svg" style="background:#fff; font-family:Segoe UI, Arial, sans-serif;">' +
+    '<rect x="0" y="0" width="' + viewW + '" height="' + viewH + '" fill="#FFFFFF"/>' +
+    bars + legend +
+    '</svg>';
 }
 
 // Диаграмма по районам для ТР (использует уже существующие districtStats/overallStats, ничего в них не меняя)
@@ -2110,7 +1970,22 @@ async function renderPPRPanel(){
       '<div class="shared-note">Данные ППР хранятся в той же общей Google Таблице, отдельно от данных ТР.</div>' +
       (!pprCanEdit() ? '<div class="lock-note">🔒 Заполнение ППР доступно только администратору. Зайдите в «Режим администратора», чтобы вносить данные.</div>' : '') +
       (isAdmin ? '<button type="button" id="pprResetAllBtn" class="admin-btn" style="margin-bottom:14px; background:#fbe1de; color:#a32f1f; border-color:#a32f1f;">🗑 Очистить факты ВСЕХ районов за выбранный период</button>' : '') +
+      '<div class="ppr-chart-block">' +
+        '<div class="ppr-chart-head">' +
+          '<h3>Диаграмма по районам — ' + pprPeriodLabel() + '</h3>' +
+          '<button type="button" id="pprChartDownloadBtn" class="export-btn" style="padding:8px 14px; font-size:12.5px;">📷 Скачать диаграмму (PNG)</button>' +
+        '</div>' +
+        '<div id="pprChartWrap">' + buildPPRChartSVG(months) + '</div>' +
+      '</div>' +
       '<div class="ov-grid">' + cards + '</div>';
+
+    const chartDownloadBtn = panel.querySelector('#pprChartDownloadBtn');
+    if(chartDownloadBtn){
+      chartDownloadBtn.addEventListener('click', ()=>{
+        const svgEl = panel.querySelector('#pprChartWrap svg');
+        if(svgEl) downloadSvgAsPng(svgEl, 'ППР_диаграмма_' + pprPeriodLabel().replace(/[^\wа-яА-Я0-9]+/g,'_') + '.png');
+      });
+    }
 
     if(isAdmin){
       const resetAllBtn = panel.querySelector('#pprResetAllBtn');
